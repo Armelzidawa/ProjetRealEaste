@@ -1,0 +1,200 @@
+{% extends "immobilier/index.html" %}
+{% block title %}Tableau de bord – ImmoGest{% endblock %}
+{% block nav_tableau %}active{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="max-w-7xl mx-auto px-5 py-10">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-4 mb-8 fade-up">
+    <div>
+      <h1 class="font-display text-2xl font-700 text-slate-900">Tableau de bord de l'utilisateur,<span class="text-blue-600">  {{ request.user.get_full_name|default:request.user.username }}</span></h1>
+      {% comment %} <p class="text-slate-500 text-sm mt-1">
+        Bienvenue, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+      </p> {% endcomment %}
+    </div>
+    <div class="flex gap-2">
+      <a href="/mes-messages/" class="btn-secondary relative">
+        <img src="{% static "images/bell.png" %}" alt="Messages"> Messages
+        {% if non_lus > 0 %}
+        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{{ non_lus }}</span>
+        {% endif %}
+      </a>
+      <a href="/ajouter/" class="btn-primary">
+        <img src="{% static "images/plus.png" %}" class="w-5 h-5 invert" alt="Ajouter"> Nouvelle annonce
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 fade-up fade-up-1">
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-lg font-semibold ">Total biens</p>
+        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+          <img src="{% static "images/building-2.png" %}" alt="Total biens" class="w-4 h-4 text-blue-600">
+        </div>
+      </div>
+      <p class="font-display text-3xl font-800 text-slate-900">{{ total_biens }}</p>
+      <p class="text-xs text-slate-400 mt-1">annonces publiées</p>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-lg font-semibold ">En vente</p>
+        <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
+          <img src="{% static "images/tag.png" %}" alt="En vente" class="w-4 h-4 text-indigo-600">
+        </div>
+      </div>
+      <p class="font-display text-3xl ">{{ biens_vente }}</p>
+      <p class="text-xs text-slate-400 mt-1">annonces actives</p>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-lg font-semibold ">En location</p>
+        <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+          <img src="{% static "images/key.png" %}" alt="En location" class="w-4 h-4 text-green-600">
+        </div>
+      </div>
+      <p class="font-display text-3xl font-800 text-slate-900">{{ biens_location }}</p>
+      <p class="text-xs text-slate-400 mt-1">annonces actives</p>
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-lg font-semibold ">Favoris</p>
+        <div class="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
+          <img src="{% static "images/heart.png" %}" alt="En Favoris" class="w-4 h-4 text-red-600">
+        </div>
+      </div>
+      <p class="font-display text-3xl font-800 text-slate-900">{{ total_favoris }}</p>
+      <p class="text-xs text-slate-400 mt-1">biens sauvegardés</p>
+    </div>
+  </div>
+
+  <!-- Table annonces -->
+  <div class="card overflow-hidden mb-8 fade-up fade-up-2">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <h2 class="font-display text-lg font-700 ">Mes annonces</h2>
+      <a href="/ajouter/" class="text-md text-blue-600 font-semibold hover:underline flex items-center gap-1">
+          <img src="{% static "images/plus.png" %}" alt="Ajouter" class="w-4 h-4 "> Ajouter
+        
+      </a>
+    </div>
+    {% if mes_biens %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-md">
+          <tr>
+            <th class="px-6 py-3 text-left">Bien</th>
+            <th class="px-6 py-3 text-left">Type</th>
+            <th class="px-6 py-3 text-left">Prix</th>
+            <th class="px-6 py-3 text-left">Statut</th>
+            <th class="px-6 py-3 text-left">Date</th>
+            <th class="px-6 py-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for bien in mes_biens %}
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                  {% with bien.get_image_principale as img %}
+                  {% if img and img.fichier %}
+                    <img src="{{ img.fichier.url }}" class="w-full h-full object-cover">
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                      <img src="{% static "images/image.png" %}" class="w-full h-full object-cover" alt="Image par défaut">
+                    </div>
+                  {% endif %}
+                  {% endwith %}
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-800 truncate max-w-[160px]">{{ bien.titre }}</p>
+                  <p class="text-xs text-slate-400">{{ bien.quartier }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4"><span class="badge badge-orange">{{ bien.get_type_bien_display }}</span></td>
+            <td class="px-6 py-4 font-semibold text-slate-800">{{ bien.prix|floatformat:0 }} FCFA</td>
+            <td class="px-6 py-4">
+              {% if bien.annonce %}
+              <span class="badge {% if bien.annonce.statut == 'validee' %}badge-green{% elif bien.annonce.statut == 'rejetee' %}badge-red{% else %}badge-yellow{% endif %}">
+                {{ bien.annonce.get_statut_display }}
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-md">{{ bien.created_at|date:"d/m/Y" }}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-1">
+                {% if bien.annonce.statut == 'validee' %}
+                <a href="/annonce/{{ bien.annonce.pk }}/" class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600 transition" title="Voir">
+                  <img src="{% static "images/eye.png" %}" class="w-4 h-4 object-cover" alt="Voir">
+                </a>
+                {% endif %}
+                <a href="/modifier/{{ bien.pk }}/" class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-green-400 hover:text-green-600 transition" title="Modifier">
+                  <img src="{% static "images/pencil.png" %}" class="w-4 h-4 object-cover" alt="Modifier">
+                </a>
+                <a href="/supprimer/{{ bien.pk }}/?retour=tableauBord" 
+                  class="w-7 h-7 flex items-center justify-center rounded-lg border border-red-200 hover:border-red-400 transition" 
+                  title="Supprimer">
+                
+                  
+                  <!-- Le div remplace l'image PNG pour permettre la coloration -->
+                  <div class="w-4 h-4 bg-red-500" 
+                        style="mask: url('{% static 'images/trash-2.png' %}') no-repeat center / contain; 
+                              -webkit-mask: url('{% static 'images/trash-2.png' %}') no-repeat center / contain;">
+                  </div>
+
+                </a>
+
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="py-16 text-center">
+      <i data-lucide="inbox" class="text-slate-300 mx-auto mb-4" style="width:40px;height:40px;"></i>
+      <p class="text-slate-500 font-semibold mb-1">Aucune annonce publiée</p>
+      <p class="text-sm text-slate-400 mb-5">Publiez votre premier bien immobilier.</p>
+      <a href="/ajouter/" class="btn-primary">
+        <i data-lucide="plus" style="width:15px;height:15px;"></i> Publier un bien
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Favoris rapides -->
+  {% if mes_favoris %}
+  <div class="card p-6 fade-up fade-up-3">
+    <p class="font-display text-lg mb-4 flex items-center gap-2">
+      <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-5 h-5 ">
+      Mes favoris
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {% for fav in mes_favoris|slice:":3" %}
+      <a href="/annonce/{{ fav.annonce.pk }}/" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-blue-50 transition-colors group">
+        <div class="w-10 h-10 bg-slate-200 rounded-lg overflow-hidden shrink-0">
+          {% with fav.annonce.bien.get_image_principale as img %}
+          {% if img and img.fichier %}<img src="{{ img.fichier.url }}" class="w-full h-full object-cover">{% endif %}
+          {% endwith %}
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-800 truncate group-hover:text-blue-600">{{ fav.annonce.bien.titre }}</p>
+          <p class="text-xs text-slate-400">{{ fav.annonce.bien.prix|floatformat:0 }} FCFA</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% if mes_favoris.count > 3 %}
+    <a href="/favoris/" class="text-blue-600 text-sm hover:underline mt-3 block">Voir tous mes favoris →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+{% block extra_js %}<script>lucide.createIcons();</script>{% endblock %}

@@ -1,0 +1,255 @@
+{% extends "immobilier/index.html" %}
+{% block nav_logement %}active{% endblock %}
+{% block title %}Annonces – ImmoGest{% endblock %}
+{% block content %}
+{% load static %}
+<section id="search" style="background-image: url('{% static "images/bgg2.jpg" %}'); background-size: cover; background-position: center; filter: brightness(0.8);" class="relative mx-auto px-5 py-10 bg-black/50 fade-up">
+  <div class="absolute inset-0 opacity-80 bg-black/50"></div>
+  <h1 class="relative font-display text-3xl mb-12 text-white text-center font-700">LES BIENS IMMOBILIERS EN VENTE OU EN LOCATION</h1>
+  <h1 class="relative text-white text-lg mb-5 -mt-5 text-center">Recherchez, filtrez et trouvez la propriété qui correspond à vos attentes</h1>
+  <div class="relative card p-6 max-w-5xl mx-auto shadow-deep">
+    <div class="flex items-center  justify-between mb-5">
+      <div class="flex items-center gap-2 font-display">
+        <img src="{% static "images/sliders-horizontal.png" %}" alt="Filtre"> Filtrer les annonces
+      </div>
+      {% if request.GET %}
+      
+      <a href="/" class="flex items-center gap-1.5 text-sm hover:text-red-500 transition-colors">
+        <img src="{% static "images/x.png" %}" alt="Réinitialiser" class="w-4 h-4">
+        Réinitialiser
+      </a>
+      {% endif %}
+    </div>
+    <form method="GET" action="/" class="space-y-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+          placeholder="Titre, quartier…" class="form-input col-span-2 md:col-span-1">
+        <select name="transaction" class="form-input form-select">
+          <option value="">Transaction (tous)</option>
+          <option value="vente"    {% if request.GET.transaction == 'vente' %}selected{% endif %}>Vente</option>
+          <option value="location" {% if request.GET.transaction == 'location' %}selected{% endif %}>Location</option>
+        </select>
+        <select name="type_bien" class="form-input form-select">
+          <option value="">Type (tous)</option>
+          {% for val,label in type_bien_choices %}
+          <option value="{{ val }}" {% if request.GET.type_bien == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" name="ville" value="{{ request.GET.ville|default:'' }}"
+          placeholder="Ville" class="form-input">
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+        <input type="number" name="prix_min" value="{{ request.GET.prix_min|default:'' }}"
+          placeholder="Prix min (FCFA)" class="form-input">
+        <input type="number" name="prix_max" value="{{ request.GET.prix_max|default:'' }}"
+          placeholder="Prix max (FCFA)" class="form-input">
+        <div></div>
+        <button type="submit" class="btn-primary justify-center">
+          <img src="{% static "images/search.png" %}" alt="Rechercher" class="w-5 h-5 invert">
+           Rechercher
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+<section class="max-w-7xl mx-auto px-5 mt-6 pb-16">
+
+  <div class="grid items-center justify-between fade-up">
+    <div class="space-y-1 grid">
+
+      <h1 class="font-display text-3xl font-700">
+        {% if request.GET %}
+          {{ annonces.count }} résultat{% if annonces.count > 1 %}s{% endif %} trouvé{% if annonces.count > 1 %}s{% endif %}
+        {% else %}
+            {% comment %} <p class="font-display text-3xl mb-12 text-blue-700 text-center font-700">LES BIENS IMMOBILIERS EN VENTE OU EN LOCATION</p> {% endcomment %}
+        {% endif %}
+      </h1>
+      {% comment %} <p class="text-slate-400 text-sm mt-0.5">Biens immobiliers en vente et ou en location</p> {% endcomment %}
+    </div>
+    <div class="flex gap-2">
+     {% comment %} <button id="view-grid" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600 text-white">
+        <i data-lucide="grid-2x2" style="width:15px;height:15px;"></i>
+      </button>
+      <button id="view-list" class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+        <i data-lucide="list" style="width:15px;height:15px;"></i>
+      </button> {% endcomment %}
+    </div>
+
+  {% if annonces %}
+  <div id="results-grid" class="grid grid-cols-1 px-7 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for annonce in annonces %}
+    <article class="card prop-card overflow-hidden group fade-up">
+      <!-- Image -->
+      <div class="h-52 relative overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+        {% with annonce.bien.get_image_principale as img %}
+        {% if img and img.fichier %}
+          <img src="{{ img.fichier.url }}" alt="{{ annonce.bien.titre }}"
+               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+        {% else %}
+          <div class="w-full h-full flex flex-col items-center justify-center text-slate-300">
+            <img src="{% static "images/image.png" %}" alt="">
+            <p class="text-xs mt-2">Aucune photo</p>
+          </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Badges top -->
+        <div class="absolute top-3 left-3 flex gap-2">
+          <span class="badge {% if annonce.bien.categorie == 'vente' %}badge-blue{% else %}badge-green{% endif %}">
+            {{ annonce.bien.get_categorie_display }}
+          </span>
+          <span class="badge badge-gray">{{ annonce.bien.get_type_bien_display }}</span>
+        </div>
+
+        <!-- Favori -->
+        {% if request.user.is_authenticated %}
+        <button onclick="toggleFavori({{ annonce.pk }}, this)"
+          class="btn-fav absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow transition hover:scale-110"
+          title="Favoris">
+          {% if annonce.pk in favoris_ids %}
+            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-4 h-4 text-red-500 fill-current">
+          {% else %}
+            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-4 h-4 text-slate-400">
+          {% endif %}
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Contenu -->
+      <div class="p-5">
+        <div class="flex items-start justify-between gap-2 mb-1">
+          <h3 class="font-display font-700 text-slate-900 leading-tight truncate">{{ annonce.bien.titre }}</h3>
+        </div>
+        <p class="text-slate-400 text-sm flex items-center gap-1 mb-3">
+          <img src="{% static "images/map-pin.png" %}" alt="Localisation" class="w-4 h-4">
+          {{ annonce.bien.localisation.ville|default:annonce.bien.quartier }}{% if annonce.bien.localisation.quartier %} – {{ annonce.bien.localisation.quartier }}{% endif %}
+        </p>
+
+        <!-- Specs -->
+        <div class="flex items-center gap-3 text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100">
+          <span class="flex items-center gap-1">
+            <img src="{% static "images/maximize-2.png" %}" alt="Surface" class="w-4 h-4">
+            {{ annonce.bien.surface }} m²
+          </span>
+          <span class="flex items-center gap-1">
+            <img src="{% static "images/door-open.png" %}" alt="Pièces" class="w-4 h-4">
+            {{ annonce.bien.nb_pieces }} pièce{{ annonce.bien.nb_pieces|pluralize }}
+          </span>
+          <span class="flex items-center gap-1 ml-auto">
+            <img src="{% static "images/eye.png" %}" alt="Vues" class="w-4 h-4">
+            {{ annonce.vues }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <p class="font-display font-800 text-blue-600 text-4xl">
+            {{ annonce.bien.prix|floatformat:0 }} <span class="text-xl font-body text-slate-400">FCFA{% if annonce.bien.categorie == 'location' %}/mois{% endif %}</span>
+          </p>
+          <a href="/annonce/{{ annonce.pk }}/" class="btn-primary text-md py-2 px-4">
+            Voir en details <img src="{% static "images/arrow-right.png" %}" alt="Voir" class="invert w-4 h-4">
+          </a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-24 text-slate-400 fade-up">
+    <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+      <img src="{% static "images/search-x.png" %}" alt="Aucune annonce trouvée" class="w-8 h-8 invert">
+    </div>
+    <p class="font-display text-xl text-slate-500 mb-2">Aucune annonce trouvée</p>
+    <p class="text-sm text-slate-400 mb-6">Modifiez vos critères de recherche.</p>
+    <a href="/" class="btn-primary">Voir toutes les annonces</a>
+  </div>
+  {% endif %}
+</section>
+{% if annonces.paginator.num_pages > 1 %}
+<div class="flex items-center justify-center mt-1 gap-2">
+
+  <!-- Bouton Précédent -->
+  {% if annonces.has_previous %}
+  <a href="?page={{ annonces.previous_page_number }}"
+    class="flex items-center gap-1 px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
+    <i data-lucide="chevron-left" style="width:14px;height:14px;"></i> Précédent
+  </a>
+  {% else %}
+  <span class="flex items-center gap-1 px-4 py-2 border border-slate-100 rounded-xl text-sm text-slate-300 cursor-not-allowed">
+    <i data-lucide="chevron-left" style="width:14px;height:14px;"></i> Précédent
+  </span>
+  {% endif %}
+
+  <!-- Numéros de pages -->
+  {% for num in annonces.paginator.page_range %}
+    {% if num == annonces.number %}
+    <span class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold">{{ num }}</span>
+    {% elif num >= annonces.number|add:"-2" and num <= annonces.number|add:"2" %}
+    <a href="?page={{ num }}"
+      class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
+      {{ num }}
+    </a>
+    {% endif %}
+  {% endfor %}
+
+  <!-- Bouton Suivant -->
+  {% if annonces.has_next %}
+  <a href="?page={{ annonces.next_page_number }}"
+    class="flex items-center gap-1 px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
+    Suivant <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+  </a>
+  {% else %}
+  <span class="flex items-center gap-1 px-4 py-2 border border-slate-100 rounded-xl text-sm text-slate-300 cursor-not-allowed">
+    Suivant <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+  </span>
+  {% endif %}
+
+</div>
+
+<!-- Info : Page X sur Y -->
+<p class="text-center text-sm text-slate-700 mt-3">
+  Page {{ annonces.number }} sur {{ annonces.paginator.num_pages }}
+  — {{ annonces.paginator.count }} annonce{{ annonces.paginator.count|pluralize }} au total
+</p>
+{% endif %}
+
+<script>
+  lucide.createIcons();
+
+  // Toggle grille / liste
+  const grid = document.getElementById('results-grid');
+  document.getElementById('view-grid')?.addEventListener('click', function() {
+    grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6';
+    this.classList.add('bg-blue-600','text-white');
+    document.getElementById('view-list').classList.remove('bg-blue-600','text-white');
+  });
+  document.getElementById('view-list')?.addEventListener('click', function() {
+    grid.className = 'flex flex-col gap-4';
+    this.classList.add('bg-blue-600','text-white');
+    document.getElementById('view-grid').classList.remove('bg-blue-600','text-white');
+    lucide.createIcons();
+  });
+
+  // AJAX Favori
+  function toggleFavori(id, btn) {
+    const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1];
+    fetch('/favoris/toggle/'+id+'/', {
+      method:'POST', headers:{'X-CSRFToken':csrf}
+    })
+    .then(r=>r.json())
+    .then(data => {
+      const icon = btn.querySelector('i');
+      if (data.active) {
+        icon.className = 'text-red-500 fill-current';
+        icon.setAttribute('data-lucide','heart');
+      } else {
+        icon.className = 'text-slate-400';
+        icon.setAttribute('data-lucide','heart');
+      }
+      lucide.createIcons();
+    });
+  }
+</script>
+
+
+{% endblock %}

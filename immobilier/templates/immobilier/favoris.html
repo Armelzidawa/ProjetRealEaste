@@ -1,0 +1,70 @@
+{% extends "immobilier/index.html" %}
+{% block title %}Mes favoris – ImmoGest{% endblock %}
+{% block nav_favoris %}active{% endblock %}
+{% block content %}
+<section class="max-w-7xl mx-auto px-5 py-12">
+  <div class="mb-8 fade-up">
+    <h1 class="font-display text-3xl font-800 text-slate-900">Mes favoris</h1>
+    <p class="text-slate-400 mt-1">{{ mes_favoris.count }} bien{{ mes_favoris.count|pluralize }} sauvegardé{{ mes_favoris.count|pluralize }}</p>
+  </div>
+
+  {% if mes_favoris %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 fade-up fade-up-1">
+    {% for fav in mes_favoris %}
+    <article class="card prop-card overflow-hidden group">
+      <div class="h-48 relative overflow-hidden bg-slate-100">
+        {% with fav.annonce.bien.get_image_principale as img %}
+        {% if img and img.fichier %}
+          <img src="{{ img.fichier.url }}" alt="{{ fav.annonce.bien.titre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+        {% else %}
+          <div class="w-full h-full flex items-center justify-center text-slate-300">
+            <i data-lucide="image" style="width:36px;height:36px;"></i>
+          </div>
+        {% endif %}
+        {% endwith %}
+        <span class="absolute top-3 left-3 badge {% if fav.annonce.bien.categorie == 'vente' %}badge-blue{% else %}badge-green{% endif %}">
+          {{ fav.annonce.bien.get_categorie_display }}
+        </span>
+        <button onclick="toggleFavori({{ fav.annonce.pk }}, this, '{{ fav.pk }}')"
+          class="absolute top-3 right-3 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center shadow hover:scale-110 transition">
+          <i data-lucide="heart" class="text-red-500 fill-current" style="width:15px;height:15px;"></i>
+        </button>
+      </div>
+      <div class="p-5">
+        <h3 class="font-display font-700 text-slate-900 truncate mb-1">{{ fav.annonce.bien.titre }}</h3>
+        <p class="text-slate-400 text-sm flex items-center gap-1 mb-3">
+          <i data-lucide="map-pin" style="width:12px;height:12px;"></i>
+          {{ fav.annonce.bien.localisation.ville }}
+        </p>
+        <div class="flex items-center justify-between">
+          <p class="font-display font-800 text-blue-600 text-lg">{{ fav.annonce.bien.prix|floatformat:0 }} FCFA</p>
+          <a href="/annonce/{{ fav.annonce.pk }}/" class="btn-primary text-xs py-1.5 px-3">Voir →</a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-24 text-slate-400 fade-up">
+    <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
+      <i data-lucide="heart" class="text-red-300" style="width:36px;height:36px;"></i>
+    </div>
+    <p class="font-display text-xl text-slate-500 mb-2">Aucun favori pour l'instant</p>
+    <p class="text-sm mb-6">Explorez les annonces et sauvegardez celles qui vous intéressent.</p>
+    <a href="/" class="btn-primary">Explorer les biens</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+  lucide.createIcons();
+  function toggleFavori(id, btn, favId) {
+    const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1];
+    fetch('/favoris/toggle/'+id+'/', {method:'POST',headers:{'X-CSRFToken':csrf}})
+    .then(r=>r.json()).then(data => {
+      if (!data.active) { btn.closest('article').remove(); }
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "immobilier/index.html" %}
+{% block title %}Mes messages – ImmoGest{% endblock %}
+{% block content %}
+  {% comment %} <h1 class="font-display text-3xl text-center font-700  mb-6 ">LES MESSAGES </h1> {% endcomment %}
+  <h1 class="font-display text-center text-blue-600 mt-6 text-3xl font-700  mb-6 ">Les messages reçus</h1> 
+
+<div class="max-w-4xl mx-auto px-5 py-10">
+  {% comment %} <h1 class="font-display text-2xl font-700  mb-6 ">Les messages reçus</h1>  {% endcomment %}
+
+  {% if contacts %}
+  <div class="space-y-4 fade-up fade-up-1">
+    {% for c in contacts %}
+    <div class="card p-6">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-display font-700">
+            {{ c.expediteur.username|first|upper }}
+          </div>
+          <div>
+            <p class="font-semibold text-slate-800">{{ c.expediteur.get_full_name|default:c.expediteur.username }}</p>
+            <p class="text-xs text-slate-400">Pour : <a href="/annonce/{{ c.annonce.pk }}/" class="text-blue-600 hover:underline">{{ c.annonce.bien.titre }}</a></p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400">{{ c.date_envoi|date:"d/m/Y à H\hi" }}</p>
+      </div>
+      <p class="text-slate-600 bg-slate-50 rounded-xl p-4 leading-relaxed">{{ c.message }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-20 text-slate-400 fade-up">
+    <i data-lucide="mail-open" style="width:48px;height:48px;" class="mb-4 text-slate-200"></i>
+    <p class="font-display text-xl text-slate-500 mb-2">Aucun message</p>
+    <p class="text-sm">Il n'y a pas encore de messages à afficher.</p>
+  </div>
+  {% endif %} 
+</div>  
+{% endblock %}
+{% block extra_js %}<script>lucide.createIcons();</script>{% endblock %}

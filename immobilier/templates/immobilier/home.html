@@ -1,0 +1,236 @@
+{% extends "immobilier/index.html" %}
+{% block title %}ImmoGest – Trouvez votre bien{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+<style>
+@keyframes infinite-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-infinite-scroll {
+  display: flex;
+  width: max-content;
+  animation: infinite-scroll 25s linear infinite; 
+}
+
+/* La classe magique pour mettre en pause */
+.group-hover\:pause-animation:hover {
+  animation-play-state: paused;
+}
+
+</style>
+
+<!-- ══ HERO ══ -->
+ {% load static %}
+<section style="background-image: url('{% static "images/bgg1.jpg" %}');filter: brightness(90%); background-size: cover; background-position: center;" class="relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white overflow-hidden">
+  <div class="absolute inset-0 opacity-80 bg-black/50" ></div>
+  <div class="relative max-w-7xl mx-auto px-5 py-20 text-center fade-up">
+    <span class="group inline-flex items-center bg-blue-10 text-blue-700 text-md font-semibold px-3 py-1.5 rounded-full border border-blue-600 mb-6 overflow-hidden max-w-full cursor-default">
+      <div class="flex animate-infinite-scroll group-hover:pause-animation gap-12">
+        <span class="text-white z-10 font-bold">La plateforme de gestion des biens immobiliers en vente ou en location.</span>
+        {% comment %} <span aria-hidden="true">La plateforme de gestion des biens immobiliers en vente et/ou en location.</span> {% endcomment %}
+      </div>
+    </span>
+
+    <h1 class="font-display text-5xl md:text-6xl font-bold leading-tight tracking-tight text-white z-10 mb-4">
+      Trouvez votre bien <br>
+      <span style="background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">en location ou en vente sur notre plateforme</span>
+    </h1>
+    <p class="text-white text-lg mb-8 max-w-xl mx-auto">
+      Des milliers de maisons, appartements et terrains en vente ou en location partout à Yaoundé.
+    </p>
+    <div class="flex gap-3 justify-center flex-wrap">
+      
+      <a href="/ajouter/" class="bg-blue-600 border border-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-900 transition-all inline-flex items-center gap-2">
+        <img src="{% static "images/plus.png" %}" class="w-4 h-4 invert" alt="ajout"> Publier une annonce
+      </a>
+    </div>
+  </div>
+
+
+  <div class="relative max-w-5xl mx-auto px-5 pb-10 grid grid-cols-2 md:grid-cols-4 gap-4 ">
+  <div class="text-center">
+    <p class="font-display text-3xl font-800 text-white">100+</p>
+    <p class="text-slate-300 text-sm">Annonces actives</p>
+  </div>
+  <div class="text-center border-x border-white/10">
+    <p class="font-display text-3xl font-800 text-white">50+</p>
+    <p class="text-slate-300 text-sm">Biens vendus</p>
+  </div>
+  <div class="text-center border-r border-white/10">
+    <p class="font-display text-3xl font-800 text-white">10+</p>
+    <p class="text-slate-300 text-sm">Villes couvertes</p>
+  </div>
+  <div class="text-center">
+    <p class="font-display text-3xl font-800 text-white">98%</p>
+    <p class="text-slate-300 text-sm">Clients satisfaits</p>
+  </div>
+</div>
+</section>
+
+<!-- ══ LISTE DES ANNONCES ══ -->
+<section class="max-w-7xl mx-auto px-5 mt-12 pb-16">
+  <div class="flex items-center justify-between mb-6 fade-up">
+    <div>
+      <h2 class="font-display text-3xl font-700 text-slate-900">
+        {% if request.GET %}
+          {{ annonces.count }} résultat{% if annonces.count > 1 %}s{% endif %} trouvé{% if annonces.count > 1 %}s{% endif %}
+        {% else %}
+          Dernières annonces
+        {% endif %}
+      </h2>
+      <p class="text-slate-400 text-sm mt-0.5">Biens immobiliers en vente et ou en location</p>
+    </div>
+    {% comment %} <div class="flex gap-2">
+      <button id="view-grid" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-600 text-white">
+        <i data-lucide="grid-2x2" style="width:15px;height:15px;"></i>
+      </button>
+      <button id="view-list" class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+        <i data-lucide="list" style="width:15px;height:15px;"></i>
+      </button>
+    </div> {% endcomment %}
+  </div>
+
+  {% if annonces %}
+  <div id="results-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for annonce in annonces %}
+    <article class="card prop-card overflow-hidden group fade-up">
+      <!-- Image -->
+      <div class="h-52 relative overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+        {% with annonce.bien.get_image_principale as img %}
+        {% if img and img.fichier %}
+          <img src="{{ img.fichier.url }}" alt="{{ annonce.bien.titre }}"
+               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+        {% else %}
+          <div class="w-full h-full flex flex-col items-center justify-center text-slate-300">
+            <img src="{% static "images/image.png" %}" alt="">
+            <p class="text-xs mt-2">Aucune photo</p>
+          </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Badges top -->
+        <div class="absolute top-3 left-3 flex gap-2">
+          <span class="badge {% if annonce.bien.categorie == 'vente' %}badge-blue{% else %}badge-green{% endif %}">
+            {{ annonce.bien.get_categorie_display }}
+          </span>
+          <span class="badge badge-gray">{{ annonce.bien.get_type_bien_display }}</span>
+        </div>
+
+        <!-- Favori -->
+        {% if request.user.is_authenticated %}
+        <button onclick="toggleFavori({{ annonce.pk }}, this)"
+          class="btn-fav absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow transition hover:scale-110"
+          title="Favoris">
+          {% if annonce.pk in favoris_ids %}
+            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-4 h-4 text-red-500 fill-current">
+          {% else %}
+            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-4 h-4 text-slate-400">
+          {% endif %}
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Contenu -->
+      <div class="p-5">
+        <div class="flex items-start justify-between gap-2 mb-1">
+          <h3 class="font-display font-700 text-slate-900 leading-tight truncate">{{ annonce.bien.titre }}</h3>
+        </div>
+        <p class="text-slate-400 text-sm flex items-center gap-1 mb-3">
+          <img src="{% static "images/map-pin.png" %}" alt="Localisation" class="w-4 h-4">
+          {{ annonce.bien.localisation.ville|default:annonce.bien.quartier }}{% if annonce.bien.localisation.quartier %} – {{ annonce.bien.localisation.quartier }}{% endif %}
+        </p>
+
+        <!-- Specs -->
+        <div class="flex items-center gap-3 text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100">
+          <span class="flex items-center gap-1">
+            <img src="{% static "images/maximize-2.png" %}" alt="Surface" class="w-4 h-4">
+            {{ annonce.bien.surface }} m²
+          </span>
+          <span class="flex items-center gap-1">
+            <img src="{% static "images/door-open.png" %}" alt="Pièces" class="w-4 h-4">
+            {{ annonce.bien.nb_pieces }} pièce{{ annonce.bien.nb_pieces|pluralize }}
+          </span>
+          <span class="flex items-center gap-1 ml-auto">
+            <img src="{% static "images/eye.png" %}" alt="Vues" class="w-4 h-4">
+            {{ annonce.vues }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <p class="font-display font-800 text-blue-600 text-4xl">
+            {{ annonce.bien.prix|floatformat:0 }} <span class="text-xl font-body text-slate-400">FCFA{% if annonce.bien.categorie == 'location' %}/mois{% endif %}</span>
+          </p>
+          <a href="/annonce/{{ annonce.pk }}/" class="btn-primary text-md py-2 px-4">
+            Voir en details <img src="{% static "images/arrow-right.png" %}" alt="Voir" class="invert w-4 h-4">
+          </a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-24 text-slate-400 fade-up">
+    <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+      <img src="{% static "images/search-x.png" %}" alt="Aucune annonce trouvée" class="w-8 h-8 invert">
+    </div>
+    <p class="font-display text-xl text-slate-500 mb-2">Aucune annonce trouvée</p>
+    <p class="text-sm text-slate-400 mb-6">Modifiez vos critères de recherche.</p>
+    <a href="/" class="btn-primary">Voir toutes les annonces</a>
+  </div>
+  {% endif %}
+
+
+  
+</section>
+<div class="flex items-center justify-center">
+  <a href="/logement/" class="btn-primary">
+    Voir plus d'annonces
+    <img src="{% static "images/arrow-right.png" %}" alt="Voir plus" class="invert w-4 h-4 ml-2">
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  lucide.createIcons();
+
+  // Toggle grille / liste
+  const grid = document.getElementById('results-grid');
+  document.getElementById('view-grid')?.addEventListener('click', function() {
+    grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6';
+    this.classList.add('bg-blue-600','text-white');
+    document.getElementById('view-list').classList.remove('bg-blue-600','text-white');
+  });
+  document.getElementById('view-list')?.addEventListener('click', function() {
+    grid.className = 'flex flex-col gap-4';
+    this.classList.add('bg-blue-600','text-white');
+    document.getElementById('view-grid').classList.remove('bg-blue-600','text-white');
+    lucide.createIcons();
+  });
+
+  // AJAX Favori
+  function toggleFavori(id, btn) {
+    const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1];
+    fetch('/favoris/toggle/'+id+'/', {
+      method:'POST', headers:{'X-CSRFToken':csrf}
+    })
+    .then(r=>r.json())
+    .then(data => {
+      const icon = btn.querySelector('i');
+      if (data.active) {
+        icon.className = 'text-red-500 fill-current';
+        icon.setAttribute('data-lucide','heart');
+      } else {
+        icon.className = 'text-slate-400';
+        icon.setAttribute('data-lucide','heart');
+      }
+      lucide.createIcons();
+    });
+  }
+</script>
+{% endblock %}

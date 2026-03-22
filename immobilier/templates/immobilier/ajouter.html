@@ -1,0 +1,327 @@
+{% extends "immobilier/index.html" %}
+{% block title %}Ajouter un bien – ImmoGest{% endblock %}
+{% block nav_ajouter %}active{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="max-w-2xl mx-auto px-5 py-10">
+  <div class="flex items-center justify-between mb-8">
+    <a href="/tableau-de-bord/" class="inline-flex items-center gap-2 text-sm ">
+      <img src="{% static "images/arrow-left.png" %}" class="w-4 h-4" alt="Retour"> Retour
+    </a>
+    <h1 class="font-display text-xl ">Publier un bien</h1>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-5">
+    {% csrf_token %}
+
+    <!-- Photos -->
+    <div class="card p-6">
+      <h2 class="font-display font-700 text-blue-600 mb-4 flex items-center gap-2">
+        <img src="{% static "images/image.png" %}" class="w-4 h-4" alt="Photos"> Photos du bien
+      </h2>
+      <div id="drop-zone" onclick="document.getElementById('photos-input').click()"
+        class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+        <div id="drop-placeholder">
+          <img src="{% static "images/cloud-upload.png" %}" class="text-slate-300 mx-auto mb-3" style="width:40px;height:40px;">
+          <p class="font-semibold text-sm">Glissez vos photos ici ou cliquez pour parcourir</p>
+          <p class="text-xs text-slate-400 mt-1">PNG, JPG · 10 MB max · 10 photos maximum</p>
+        </div>
+        <div id="photo-grid" class="grid grid-cols-3 gap-2 mt-3 hidden"></div>
+      </div>
+      <input type="file" id="photos-input" name="photos" multiple accept="image/png,image/jpeg" class="hidden">
+      <p class="text-xs text-slate-400 mt-2">La première photo sera l'image principale.</p>
+    </div>
+
+    <!-- Informations générales -->
+    <div class="card p-6">
+      <h2 class="font-display font-700 text-blue-600 mb-5 flex items-center gap-2">
+          <img src="{% static "images/info.png" %}" class="text-slate-300 mb-3" alt="Informations" style="width:16px;height:16px;">
+          Informations générales
+      </h2>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Transaction *</label>
+          <select name="categorie" class="form-input form-select">
+            <option value="vente">Vente</option>
+            <option value="location">Location</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Type de bien *</label>
+          <select name="type_bien" class="form-input form-select">
+            <option value="appartement">Appartement</option>
+            <option value="maison">Maison</option>
+            <option value="terrain">Terrain</option>
+            <option value="local">Local commercial</option>
+            <option value="bureau">Bureau</option>
+            <option value="garage">Garage / Parking</option>
+          </select>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-md font-semibold mb-1.5">Titre de l'annonce *</label>
+        <input type="text" name="titre" required class="form-input" placeholder="Ex : Villa 4 chambres à Bastos">
+      </div>
+      <div class="mb-4">
+        <label class="block text-md font-semibold mb-1.5">Description *</label>
+        <textarea name="description" rows="4" required class="form-input resize-none"
+          placeholder="Décrivez le bien : atouts, environnement, équipements…"></textarea>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Prix (FCFA) *</label>
+          <input type="number" name="prix" required min="0" class="form-input" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Surface (m²) *</label>
+          <input type="number" name="surface" required min="0" step="0.1" class="form-input" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Pièces</label>
+          <input type="number" name="nb_pieces" min="0" class="form-input" value="1">
+        </div>
+      </div>
+    </div>
+
+    <!-- Localisation -->
+    <div class="card p-6">
+      <h2 class="font-display font-700 text-blue-600 mb-5 flex items-center gap-2">
+          <img src="{% static "images/map-pin.png" %}" class="text-slate-300  mb-3" alt="Localisation" style="width:16px;height:16px;">
+           Localisation
+      </h2>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Ville *</label>
+          <input type="text" name="ville" required class="form-input" placeholder="Yaoundé">
+        </div>
+        <div>
+          <label class="block text-md font-semibold mb-1.5">Quartier</label>
+          <input type="text" name="quartier" class="form-input" placeholder="Bastos">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-md font-semibold mb-1.5">Adresse</label>
+        <input type="text" name="adresse" class="form-input" placeholder="Rue, numéro…">
+      </div>
+         
+        <!-- Barre de recherche de quartier sur la carte -->
+        <div class="mb-3">
+          <label class="block text-md font-semibold mb-1.5">
+            Rechercher le quartier sur la carte
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="search-map" class="form-input flex-1"
+              placeholder="Ex: Bastos Yaoundé, Bonanjo Douala...">
+            <button type="button" onclick="rechercherQuartier()"
+              class="btn-primary px-4 shrink-0">
+              Rechercher
+            </button>
+          </div>
+          <!-- Message de statut -->
+          <p id="search-status" class="text-xs mt-1 text-slate-400"></p>
+        </div>
+
+        <!-- Carte Leaflet -->
+        <p class="text-xs text-slate-400 mb-2">
+           Cliquez sur la carte pour placer exactement le bien
+        </p>
+        <div id="map-picker" class="h-72 rounded-xl border border-slate-200 mb-4"></div>
+
+        <!-- Coordonnées (cachées mais visibles pour vérification) -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-md font-semibold mb-1.5">
+              Latitude 
+            </label>
+            <input type="number" name="latitude" id="input-latitude"
+              step="any" class="form-input bg-slate-50" placeholder="Auto..." readonly>
+          </div>
+          <div>
+            <label class="block text-md font-semibold mb-1.5">
+              Longitude 
+            </label>
+            <input type="number" name="longitude" id="input-longitude"
+              step="any" class="form-input bg-slate-50" placeholder="Auto..." readonly>
+          </div>
+        </div>
+      </div>
+    
+
+    <!-- Actions -->
+    <div class="flex gap-3 justify-end">
+      <a href="/tableau-de-bord/" class="btn-secondary">Annuler</a>
+      <button type="submit" class="btn-primary">
+          <img src="{% static "images/send.png" %}" class="text-slate-300 invert mb-3" alt="Publier" style="width:16px;height:16px;">
+         Publier l'annonce
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  lucide.createIcons();
+
+  // ── Initialiser la carte centrée sur Yaoundé ──
+  var map = L.map('map-picker', {
+    scrollWheelZoom: false,
+
+  }).setView([3.8480, 11.5021], 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  var marker = null;
+
+  // ── Fonction : remplir les inputs avec les coordonnées ──
+  function placerMarqueur(lat, lng, titre) {
+    // Remplir les champs latitude et longitude
+    document.getElementById('input-latitude').value  = lat.toFixed(6);
+    document.getElementById('input-longitude').value = lng.toFixed(6);
+
+    // Déplacer ou créer le marqueur
+    if (marker) {
+      marker.setLatLng([lat, lng]);
+    } else {
+      marker = L.marker([lat, lng]).addTo(map);
+    }
+
+    // Popup sur le marqueur
+    marker.bindPopup(`
+      <div style="min-width:140px">
+        <b>${titre || 'Position du bien'}</b><br>
+        <span style="font-size:11px;color:#64748b">
+          Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}
+        </span>
+      </div>
+    `).openPopup();
+  }
+
+  // ── Clic sur la carte → place le marqueur ──
+  map.on('click', function(e) {
+    placerMarqueur(e.latlng.lat, e.latlng.lng, 'Position sélectionnée');
+    document.getElementById('search-status').textContent = 'Position enregistrée !';
+    document.getElementById('search-status').className = 'text-xs mt-1 text-green-500';
+  });
+
+  // ── Recherche de quartier avec Nominatim (OpenStreetMap) ──
+  function rechercherQuartier() {
+    var query = document.getElementById('search-map').value.trim();
+    var status = document.getElementById('search-status');
+
+    if (!query) {
+      status.textContent = 'Entrez un quartier à rechercher.';
+      status.className = 'text-xs mt-1 text-yellow-500';
+      return;
+    }
+
+    status.textContent = 'Recherche en cours...';
+    status.className = 'text-xs mt-1 text-blue-500';
+
+    // API Nominatim gratuite (OpenStreetMap)
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&q='
+              + encodeURIComponent(query)
+              + '&limit=1&accept-language=fr';
+
+    fetch(url, {
+      headers: { 'Accept-Language': 'fr' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.length === 0) {
+        status.textContent = 'Quartier non trouvé. Essayez avec le nom de la ville aussi.';
+        status.className = 'text-xs mt-1 text-red-500';
+        return;
+      }
+
+      var result = data[0];
+      var lat = parseFloat(result.lat);
+      var lng = parseFloat(result.lon);
+
+      // Centrer la carte sur le résultat
+      map.setView([lat, lng], 16);
+
+      // Placer le marqueur
+      placerMarqueur(lat, lng, result.display_name);
+
+      // Mettre à jour le statut
+      status.textContent = '✅ Trouvé : ' + result.display_name;
+      status.className = 'text-xs mt-1 text-green-500';
+    })
+    .catch(err => {
+      status.textContent = '❌ Erreur de connexion. Vérifiez votre internet.';
+      status.className = 'text-xs mt-1 text-red-500';
+    });
+  }
+
+  // ── Recherche en appuyant sur Entrée ──
+  document.getElementById('search-map').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // évite de soumettre le formulaire
+      rechercherQuartier();
+    }
+  });
+
+  // ── Gestion photos ──
+  const input = document.getElementById('photos-input');
+  const zone  = document.getElementById('drop-zone');
+  const placeholder = document.getElementById('drop-placeholder');
+  const grid  = document.getElementById('photo-grid');
+  let files   = [];
+
+  function renderPhotos() {
+    if (!files.length) {
+      placeholder.classList.remove('hidden');
+      grid.classList.add('hidden');
+      grid.innerHTML = '';
+      return;
+    }
+    placeholder.classList.add('hidden');
+    grid.classList.remove('hidden');
+    grid.innerHTML = '';
+    files.forEach((f, i) => {
+      const url = URL.createObjectURL(f);
+      const d = document.createElement('div');
+      d.className = 'relative group';
+      d.innerHTML = `
+        <img src="${url}" class="w-full h-24 object-cover rounded-lg"/>
+        ${i === 0 ? '<span class="absolute bottom-1 left-1 text-[9px] font-bold bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Principal</span>' : ''}
+        <button type="button" data-i="${i}" class="del-btn absolute top-1 right-1 w-5 h-5 bg-white/90 rounded-full flex items-center justify-center text-slate-600 opacity-0 group-hover:opacity-100 shadow text-xs font-bold">×</button>
+      `;
+      grid.appendChild(d);
+    });
+    grid.querySelectorAll('.del-btn').forEach(b => b.onclick = e => {
+      e.stopPropagation();
+      files.splice(+b.dataset.i, 1);
+      sync();
+      renderPhotos();
+    });
+  }
+
+  function sync() {
+    const dt = new DataTransfer();
+    files.forEach(f => dt.items.add(f));
+    input.files = dt.files;
+  }
+
+  input.onchange = () => {
+    files = [...files, ...Array.from(input.files)].slice(0, 10);
+    renderPhotos();
+    sync();
+  };
+
+  ['dragover', 'dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault();
+    if (ev === 'drop') {
+      const f = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      files = [...files, ...f].slice(0, 10);
+      renderPhotos();
+      sync();
+    }
+    zone.classList.toggle('border-blue-400', ev === 'dragover');
+  }));
+</script>
+{% endblock %}

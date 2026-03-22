@@ -1,0 +1,228 @@
+{% extends "immobilier/index.html" %}
+{% block title %}{{ annonce.bien.titre }} – ImmoGest{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="max-w-7xl mx-auto px-5 py-10">
+  <a href="/" class="inline-flex items-center gap-2 text-black-600 text-md hover:text-slate-800 mb-6">
+    <img src="{% static "images/arrow-left.png" %}" alt="Retour" class="w-4 h-4">
+    Retour
+  </a>
+  
+  <div class="grid grid-cols-2 lg:grid-cols-3 gap-8">
+
+    <!-- Colonne principale -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Galerie -->
+      <div class="card overflow-hidden">
+        {% with annonce.bien.images.all as images %}
+        {% if images %}
+          {% if images|length > 1 %}
+          <div class="grid grid-cols-3 gap-1">
+            {% for img in images %}
+            <div class="{% if forloop.first %}col-span-2 row-span-2{% endif %} overflow-hidden">
+              <img src="{{ img.fichier.url }}" alt="{{ annonce.bien.titre }}"
+                   class="w-full {% if forloop.first %}h-80{% else %}h-40{% endif %} object-cover hover:scale-105 transition-transform duration-500">
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <img src="{{ images.0.fichier.url }}" alt="{{ annonce.bien.titre }}" class="w-full h-80 object-cover">
+          {% endif %}
+        {% else %}
+          <div class="h-72 bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center text-slate-300">
+            <img src="{% static "images/image.png" %}" alt="" class="w-12 h-12 mb-2">
+            <p class="text-sm mt-2">Aucune photo disponible</p>
+          </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Titre et prix -->
+      <div class="card p-6">
+        <div class="flex items-start justify-between flex-wrap gap-4 mb-4">
+          <div>
+            <div class="flex text-md gap-2 mb-2">
+              <span class="badge {% if annonce.bien.categorie == 'vente' %}badge-blue{% else %}badge-green{% endif %}">
+                {{ annonce.bien.get_categorie_display }}
+              </span>
+              <span class="badge badge-gray">{{ annonce.bien.get_type_bien_display }}</span>
+            </div>
+            <h1 class="font-display text-2xl font-800 text-slate-900">{{ annonce.bien.titre }}</h1>
+            <p class="text-slate-400 flex items-center gap-1 mt-1">
+              <img src="{% static "images/map-pin.png" %}" alt="Localisation" class="w-3 h-3">
+              {{ annonce.bien.localisation.ville }} – {{ annonce.bien.localisation.quartier }}
+              {% if annonce.bien.localisation.adresse %}<span class="text-slate-300">|</span> {{ annonce.bien.localisation.adresse }}{% endif %}
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="font-display font-800 text-4xl text-blue-600">{{ annonce.bien.prix|floatformat:0 }} <span class="text-2xl">FCFA</span></p>
+            <p class="text-slate-400 text-sm">{% if annonce.bien.categorie == 'location' %}par mois{% else %}prix de vente{% endif %}</p>
+            {% if request.user.is_authenticated %}
+            <button id="btn-favori" onclick="toggleFavori({{ annonce.pk }})"
+              class="mt-2 flex items-center gap-1.5 text-sm ml-auto {% if est_favori %}text-red-500{% else %}text-slate-400{% endif %} hover:text-red-500 transition-colors">
+              <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-4 h-4" {% if est_favori %}class="fill-current"{% endif %}>
+              {% if est_favori %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}
+            </button>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Specs -->
+        <div class="grid grid-cols-3 gap-4 bg-slate-50 rounded-xl p-4 mb-6">
+          <div class="text-center">
+            <img src="{% static "images/maximize-2.png" %}" alt="Surface" class="text-blue-500 mx-auto mb-1" style="width:20px;height:20px;">
+            <p class="font-display font-700 text-lg">{{ annonce.bien.surface }} m²</p>
+            <p class="text-slate-400 text-xs">Surface</p>
+          </div>
+          <div class="text-center border-x border-slate-200">
+            <img src="{% static "images/door-open.png" %}" alt="Pièces" class="text-blue-500 mx-auto mb-1" style="width:20px;height:20px;">
+            <p class="font-display font-700 text-lg">{{ annonce.bien.nb_pieces }}</p>
+            <p class="text-slate-400 text-xs">Pièces</p>
+          </div>
+          <div class="text-center">
+            <img src="{% static "images/eye.png" %}" alt="Vues" class="text-blue-500 mx-auto mb-1" style="width:20px;height:20px;">
+            <p class="font-display font-700 text-lg">{{ annonce.vues }}</p>
+            <p class="text-slate-400 text-xs">Vues</p>
+          </div>
+        </div>
+
+        <h2 class="font-display font-700 text-lg mb-3">Description</h2>
+        <p class="text-slate-600 leading-relaxed">{{ annonce.bien.description }}</p>
+
+        <p class="text-xs text-slate-400 mt-4 flex items-center gap-1">
+          <img src="{% static "images/calendar.png" %}" alt="Calendrier" class="w-3 h-3">
+          Publié le {{ annonce.datePublication|date:"d/m/Y" }}
+        </p>
+      </div>
+
+     <h1 class="font-display font-700 text-3xl mb-4">Localisation du bien</h1>
+
+      {% if annonce.bien.localisation.latitude %}
+      <div id="map" class="h-72 w-full rounded-xl overflow-hidden mb-6 border border-slate-200"
+        style="z-index: 1;">
+      </div>
+      {% else %}
+      <div class="h-40 w-full rounded-xl border border-slate-200 flex flex-col items-center justify-center text-slate-300 mb-6">
+        <img src="{% static 'images/map-pin.png' %}" class="w-8 h-8 opacity-30 mb-2">
+        <p class="text-sm">Localisation non renseignée</p>
+      </div>
+      {% endif %}
+
+    <!-- Sidebar -->
+    <div class="space-y-5">
+      <!-- Propriétaire -->
+      <div class="card p-6">
+        <h2 class="font-display font-700 mb-4 flex items-center gap-2">
+          <i data-lucide="user-circle" class="text-blue-500" style="width:18px;height:18px;"></i>
+          Propriétaire
+        </h2>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white f text-lg">
+            {{ annonce.bien.proprietaire.username|first|upper }}
+          </div>
+          <div>
+            <p class="font-medium text-slate-800">{{ annonce.bien.proprietaire.get_full_name|default:annonce.bien.proprietaire.username }}</p>
+            <p class="text-xs">Membre depuis {{ annonce.bien.proprietaire.date_joined|date:"d/m/Y " }}</p>
+          </div>
+        </div>
+      </div> 
+
+      <!-- Formulaire contact -->
+      {% if request.user.is_authenticated and annonce.bien.proprietaire != request.user %}
+      <div class="card p-6">
+        <h2 class="font-display font-700 mb-4 flex items-center gap-2">
+          <i data-lucide="send" class="text-blue-500" style="width:18px;height:18px;"></i>
+          Contacter le propriétaire
+        </h2>
+        <form method="POST" action="/contacter/{{ annonce.pk }}/">
+          {% csrf_token %}
+          <textarea name="message" rows="4" required
+            placeholder="Bonjour, je suis intéressé par ce bien..."
+            class="form-input mb-3 resize-none"></textarea>
+          <button type="submit" class="btn-primary w-full justify-center">
+            <i data-lucide="send" style="width:14px;height:14px;"></i> Envoyer le message
+          </button>
+        </form>
+      </div>
+      {% elif not request.user.is_authenticated %}
+      <div class="card p-6 text-center">
+        <i data-lucide="lock" class="text-slate-300 mx-auto mb-3" style="width:32px;height:32px;"></i>
+        <p class="text-slate-500 text-sm mb-4">Connectez-vous pour contacter le propriétaire</p>
+        <a href="/connexion/?next=/annonce/{{ annonce.pk }}/" class="btn-primary justify-center w-full">
+          Se connecter
+        </a>
+        <a href="/inscription/" class="btn-secondary justify-center w-full mt-2 text-sm">
+          Créer un compte
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  lucide.createIcons();
+
+  {% if annonce.bien.localisation.latitude %}
+  // Initialiser la carte
+  var map = L.map('map', {
+    scrollWheelZoom: false   // ← scroll de page normal
+  }).setView([
+    {{ annonce.bien.localisation.latitude }},
+    {{ annonce.bien.localisation.longitude }}
+  ], 15);
+
+  // Forcer z-index sous la navbar
+  map.getContainer().style.zIndex = '1';
+
+  // Fond de carte
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  // Marqueur
+  L.marker([
+    {{ annonce.bien.localisation.latitude }},
+    {{ annonce.bien.localisation.longitude }}
+  ])
+  .addTo(map)
+  .bindPopup(`
+    <div style="min-width:150px">
+      <b>{{ annonce.bien.titre }}</b><br>
+      <span style="color:#64748b;font-size:11px">{{ annonce.bien.localisation.ville }}</span>
+    </div>
+  `)
+  .openPopup();
+
+  // Zoom molette actif seulement au clic sur la carte
+  map.on('click',    function() { map.scrollWheelZoom.enable(); });
+  map.on('mouseout', function() { map.scrollWheelZoom.disable(); });
+
+  {% endif %}
+
+  // ── Toggle Favori (ton code existant) ──
+  function toggleFavori(id) {
+    const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1];
+    fetch('/favoris/toggle/'+id+'/', {method:'POST',headers:{'X-CSRFToken':csrf}})
+    .then(r=>r.json()).then(data => {
+      const btn = document.getElementById('btn-favori');
+      const icon = btn.querySelector('i');
+      if (data.active) {
+        btn.className = btn.className.replace('text-slate-400','text-red-500');
+        icon.classList.add('fill-current');
+        btn.lastChild.textContent = ' Retirer des favoris';
+      } else {
+        btn.className = btn.className.replace('text-red-500','text-slate-400');
+        icon.classList.remove('fill-current');
+        btn.lastChild.textContent = ' Ajouter aux favoris';
+      }
+      lucide.createIcons();
+    });
+  }
+</script>
+{% endblock %}

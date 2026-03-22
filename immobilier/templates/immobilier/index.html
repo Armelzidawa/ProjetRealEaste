@@ -1,0 +1,317 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}ImmoGest – Gestion immobilière{% endblock %}</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts : Syne (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <!-- Leaflet (carte interactive) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne','sans-serif'],
+            body:    ['DM Sans','sans-serif'],
+          },
+          colors: {
+            brand:  { DEFAULT:'#0f172a', soft:'#1e293b' },
+            accent: '#2563eb',
+            gold:   '#f59e0b',
+          },
+          boxShadow: {
+            card: '0 2px 16px 0 rgba(0,0,0,0.07)',
+            deep: '0 8px 40px 0 rgba(37,99,235,0.13)',
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    body { font-family:'DM Sans',sans-serif; }
+    h1,h2,.font-display { font-family:'Syne',sans-serif; }
+
+    /* Navbar */
+    .navbar {
+      position:sticky;top:0;z-index:50;
+      background:rgba(255,255,255,0.95);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid #e2e8f0;
+    }
+    .nav-link {
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 12px;border-radius:8px;
+      font-size:.88rem;font-weight:500;color:#475569;
+      text-decoration:none;transition:all .18s;
+    }
+    .nav-link:hover { background:#f1f5f9;color:#0f172a; }
+    .nav-link.active { background:#0f172a;color:#fff; }
+
+    /* Buttons */
+    .btn-primary {
+      display:inline-flex;align-items:center;gap:7px;
+      background:#2563eb;color:#fff;
+      padding:9px 20px;border-radius:10px;
+      font-size:.875rem;font-weight:600;
+      border:none;cursor:pointer;transition:all .18s;text-decoration:none;
+    }
+    .btn-primary:hover { background:#1d4ed8;transform:translateY(-1px); }
+    .btn-secondary {
+      display:inline-flex;align-items:center;gap:6px;
+      background:#f1f5f9;color:#0f172a;
+      padding:9px 18px;border-radius:10px;
+      font-size:.875rem;font-weight:500;
+      border:1px solid #e2e8f0;cursor:pointer;transition:all .18s;text-decoration:none;
+    }
+    .btn-secondary:hover { background:#e2e8f0; }
+    .btn-danger {
+      display:inline-flex;align-items:center;gap:6px;
+      padding:9px 18px;border-radius:10px;
+      font-size:.875rem;font-weight:500;
+      border:1px solid #fecaca;cursor:pointer;transition:all .18s;text-decoration:none;
+    }
+    .btn-danger:hover { background:#fee2e2; }
+
+    /* Cards */
+    .card {
+      background:#fff;border:1px solid #e2e8f0;
+      border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.05);
+    }
+
+    /* Badges */
+    .badge {
+      display:inline-flex;align-items:center;
+      font-size:.73rem;font-weight:700;letter-spacing:.04em;
+      padding:3px 10px;border-radius:20px;
+    }
+    .badge-blue   { background:#dbeafe;color:#1d4ed8; }
+    .badge-green  { background:#dcfce7;color:#15803d; }
+    .badge-orange { background:#fff7ed;color:#c2410c; }
+    .badge-yellow { background:#fef9c3;color:#b45309; }
+    .badge-red    { background:#fef2f2;color:#b91c1c; }
+    .badge-gray   { background:#f1f5f9;color:#475569; }
+
+    /* Form inputs */
+    .form-input {
+      width:100%;border:1.5px solid #e2e8f0;border-radius:10px;
+      padding:10px 14px;font-size:.9rem;outline:none;
+      transition:all .18s;background:#fafafa;
+      font-family:'DM Sans',sans-serif;
+    }
+    .form-input:focus { border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff; }
+    .form-input::placeholder { color:#94a3b8; }
+    .form-select { appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:38px; }
+
+    /* Footer */
+    .footer { background:#0f172a;color:#94a3b8; }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity:0;transform:translateY(16px); }
+      to   { opacity:1;transform:translateY(0); }
+    }
+    .fade-up   { animation:fadeUp .5s ease both; }
+    .fade-up-1 { animation-delay:.08s; }
+    .fade-up-2 { animation-delay:.16s; }
+    .fade-up-3 { animation-delay:.24s; }
+
+    /* Property card hover */
+    .prop-card { transition:transform .25s,box-shadow .25s; }
+    .prop-card:hover { transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.12); }
+
+    /* Alert */
+    .alert { padding:12px 16px;border-radius:10px;font-size:.875rem;margin-bottom:16px; }
+    .alert-success { background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0; }
+    .alert-error   { background:#fef2f2;color:#b91c1c;border:1px solid #fecaca; }
+    .alert-warning { background:#fffbeb;color:#b45309;border:1px solid #fde68a; }
+    .alert-info    { background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe; }
+  
+
+
+  </style>
+  
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+  <header class="navbar">
+    <div class="max-w-7xl mx-auto px-2 h-16 flex items-center justify-between">
+
+      <a href="/" class="flex items-center gap-2 shrink-0 select-none">
+        <div class="w-16 h-16 rounded-xl flex items-center justify-center shadow">
+         <img src="{% static "images/logo.jpg" %}"  alt="Logo"> 
+        </div>
+        <div class="leading-none">
+          <p class="font-display text-blue-700 font-700 text-2xl">ImmoGest</p>
+          <p class="text-sm text-slate-400">Gestion immobilière</p>
+        </div>
+      </a>
+
+      <!-- Nav desktop -->
+      <nav class="hidden gap-2 md:flex items-center ">
+        <a href="/" class="nav-link text-black text-lg {% block nav_home %}{% endblock %}">
+          <img src="{% static "images/house.png" %}" alt="Accueil" class="w-5 h-5 invert"> Accueil
+        </a>
+
+        {% if request.user.is_authenticated %}
+
+          <a href="/tableau-de-bord/" class="nav-link text-black text-lg {% block nav_tableau %}{% endblock %}">
+            <img src="{% static "images/table-cells-merge.png" %}" alt="Tableau de bord" class="w-5 h-5 "> Tableau de bord
+          </a>
+          <a href="/favoris/" class="nav-link text-black text-lg {% block nav_favoris %}{% endblock %}">
+            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-5 h-5 "> Favoris
+          </a>
+          <a href="/ajouter/" class="nav-link text-black text-lg {% block nav_ajouter %}{% endblock %}">
+            <img src="{% static "images/plus.png" %}" alt="Ajouter" class="w-5 h-5 "> Ajouter
+          </a>
+        {% endif %}
+         <a href="/logement/" class="nav-link text-black text-lg {% block nav_logement %}{% endblock %}">
+          <img src="{% static "images/megaphone.png" %}" alt="Logement" class="w-5 h-5 "> Annonces
+        </a>
+      </nav>
+
+      <!-- Actions droite -->
+      <div class="flex gap-2 items-center">
+        {% if request.user.is_authenticated %}
+          {% if request.user.is_superuser %}
+          <a href="/admin-annonces/" class="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-md font-semibold hover:bg-red-700 transition">
+            <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Admin
+          </a>
+        {% endif %}
+          <a href="/mes-messages/" class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition">
+            <img src="{% static "images/bell.png" %}" alt="Messages">
+            {% if non_lus > 0 %}
+            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{{ non_lus }}</span>
+            {% endif %}
+            {% comment %} {% if unread_messages_count > 0 %}
+            <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{{ unread_messages_count }}</span>
+            {% endif %} {% endcomment %}
+          </a>
+          <span class="hidden sm:flex items-center gap-1.5 text-md ">
+            <img src="{% static "images/user-check.png" %}" alt="Utilisateur">
+            {{ request.user.username }}
+          </span>
+         {% comment %} <!-- Icône Soleil pour le mode clair -->
+          <img class="hidden" src="{% static 'images/sun.png' %}" alt="Mode Clair">
+
+          <!-- Icône Lune pour le mode sombre -->
+          <img src="{% static 'images/moon.png' %}" alt="Mode Sombre"> {% endcomment %}
+
+          
+          <a href="/deconnexion/" class="btn-primary text-md py-1.5 px-3">
+            <img src="{% static "images/log-out.png" %}" class= "invert w-4 h-4" alt="Déconnexion"> Déconnexion
+          </a>
+        {% else %}
+          <a href="/connexion/" class="btn-secondary text-xs py-1.5 px-3">
+            <img src="{% static "images/log-in.png" %}" class="w-4 h-4" alt="Connexion"> Connexion
+          </a>
+          <a href="/inscription/" class="btn-primary text-xs py-1.5 px-3">
+            <img src="{% static "images/user-plus.png" %}" class="w-4 h-4 invert" alt="S'inscrire"> S'inscrire
+          </a>
+        {% endif %}
+        <!-- Mobile menu button -->
+        <button id="btn-mobile" class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600">
+          <img src="{% static "images/menu.png" %}" alt="Menu" style="width:16px;height:16px;">
+        </button>
+      </div>
+    </div>
+    <!-- Mobile nav -->
+    <div id="mobile-nav" class="hidden md:hidden border-t justify-center border-slate-100 bg-white px-5 py-3 space-y-1">
+      <a href="/" class="text-center nav-link block">Accueil</a>
+      <a href="/tableau-de-bord/" class="nav-link block text-center">Tableau de bord</a>
+      <a href="/favoris/" class="nav-link block text-center">Favoris</a>
+      <a href="/ajouter/" class="nav-link block text-center">Ajouter </a>
+      <a href="/logement/" class="nav-link block text-center">Annonces</a>
+      {% if request.user.is_authenticated %}
+          {% if request.user.is_superuser %}
+          <a href="/admin-annonces/" class="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-md font-semibold hover:bg-red-700 transition">
+            <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Admin
+          </a>
+          {% endif %} 
+          <a href="/mes-messages/" class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition">
+            <img src="{% static "images/bell.png" %}" alt="Messages">
+            {% if non_lus > 0 %}
+            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{{ non_lus }}</span>
+            {% endif %}
+          </a>
+          <a href="/deconnexion/" class="btn-primary w-full text-center py-2 mt-2">
+            <img src="{% static "images/log-out.png" %}" class= "invert w-4 h-4" alt="Déconnexion"> Déconnexion
+          </a>
+        {% else %}
+          <a href="/connexion/" class="btn-secondary w-full text-center py-2 mt-2">
+            <img src="{% static "images/log-in.png" %}" class="w-4 h-4" alt="Connexion"> Connexion
+          </a>
+          <a href="/inscription/" class="btn-primary w-full text-center py-2 mt-2">
+            <img src="{% static "images/user-plus.png" %}" class="w-4 h-4" alt="S'inscrire"> S'inscrire
+          </a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if messages %}
+  <div class="max-w-7xl mx-auto px-5 pt-4">
+    {% for msg in messages %}
+    <div class="alert {% if msg.tags == 'success' %}alert-success{% elif msg.tags == 'error' %}alert-error{% elif msg.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} flex items-center gap-2">
+      <i data-lucide="{% if msg.tags == 'success' %}check-circle{% elif msg.tags == 'error' %}alert-circle{% else %}info{% endif %}" style="width:15px;height:15px;"></i>
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main>{% block content %}{% endblock %} </main>
+
+  <footer class="footer mt-20">
+    <div class="max-w-7xl mx-auto px-5 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div>
+        <p class="font-display text-white font-700 text-lg mb-2">ImmoGest</p>
+        <p class="text-sm leading-relaxed">Plateforme de gestion des biens immobiliers en vente et en location.</p>
+      </div>
+      <div>
+        <p class="text-white font-600 text-sm mb-3">Navigation</p>
+        <ul class="space-y-1.5 text-sm">
+          <li><a href="/" class="hover:text-white transition-colors">Accueil</a></li>
+          <li><a href="/tableau-de-bord/" class="hover:text-white transition-colors">Tableau de bord</a></li>
+          <li><a href="/favoris/" class="hover:text-white transition-colors">Favoris</a></li>
+          <li><a href="/ajouter/" class="hover:text-white transition-colors">Ajouter un bien</a></li>
+          <li><a href="/annonces/" class="hover:text-white transition-colors">Annonces</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-white font-600 text-sm mb-3">Contact</p>
+        <ul class="space-y-1.5 text-sm">
+          <li class="flex items-center gap-2"><img src="{% static "images/mail.png" %}" alt="Email" class="invert w-4 h-4"> armelzid44@gmail.com</li>
+          <li class="flex items-center gap-2"><img src="{% static "images/phone.png" %}" alt="Téléphone" class="invert w-4 h-4"> +237 695 954 020</li>
+          <li class="flex items-center gap-2"><img src="{% static "images/map-pin.png" %}" alt="Adresse" class="invert w-4 h-4"> Yaoundé, Cameroun</li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+      &copy; 2026 <span class="text-blue-400 font-semibold">ImmoGest</span>. Tous droits réservés.
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+    document.getElementById('btn-mobile')?.addEventListener('click', () => {
+      document.getElementById('mobile-nav').classList.toggle('hidden');
+    });
+       
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

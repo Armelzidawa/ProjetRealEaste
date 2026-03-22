@@ -1,0 +1,32 @@
+
+{% extends "immobilier/index.html" %}
+
+{% block content %}
+{% load static %}
+<div class="max-w-7xl mx-auto px-5 py-10">
+  <h1 class="font-display text-2xl font-700 text-slate-900 mb-6">Tableau de bord administrateur</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for bien in biens_en_attente %}
+    <div class="card p-5 flex flex-col justify-between">
+      <div>
+        <h2 class="font-display text-lg font-semibold mb-2">{{ bien.titre }}</h2>
+        <p class="text-sm text-slate-500 mb-4">{{ bien.categorie|capfirst }} - {{ bien.type_bien|capfirst }}</p>
+        <p class="text-sm text-slate-700 mb-4">{{ bien.description|truncatechars:100 }}</p>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <a href="{% url 'valider_bien' bien.id %}" class="btn-primary w-full">
+          <img src="{% static "images/check.png" %}" alt="Valider"> Valider
+        </a>
+        <a href="{% url 'refuser_bien' bien.id %}" class="btn-secondary w-full">
+          <img src="{% static "images/x.png" %}" alt="Refuser"> Refuser
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-slate-500 col-span-full">Aucune annonce en attente de validation.</p>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

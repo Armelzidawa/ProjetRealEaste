@@ -1,0 +1,33 @@
+{% extends "immobilier/index.html" %}
+{% block title %}Supprimer – ImmoGest{% endblock %}
+{% block content %}
+{% load static %}
+<div class="max-w-md mx-auto px-5 py-20 text-center">
+  <div class="card p-8 shadow-lg">
+    <div class="w-16 h-16 mx-auto bg-red-200 rounded-full flex items-center justify-center mb-5">
+      <img src="{% static "images/trash-2.png" %}" alt="Supprimer" class="w-8 h-8 text-red-500">
+    </div>
+    <h1 class="font-display text-xl font-700 text-slate-900 mb-2">Supprimer cette annonce ?</h1>
+    <p class="text-slate-500 text-sm mb-6">
+      Vous êtes sur le point de supprimer <strong>{{ bien.titre }}</strong>. Voulez-vous vraiment continuer ?
+    </p>
+    <form method="POST">
+      {% csrf_token %}
+      <!-- On passe le retour dans le formulaire POST aussi -->
+      <input type="hidden" name="retour" value="{{ retour }}">
+      <div class="flex gap-3 justify-center">
+        <!-- Annuler → retourne vers la bonne page -->
+        <a href="{% url retour %}" class="btn-secondary">
+          Annuler
+        </a>
+        <button type="submit" class="btn-danger">
+          <img src="{% static 'images/trash-2.png' %}" alt="Supprimer" class="w-4 h-4">
+          Supprimer
+        </button>
+
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script>lucide.createIcons();</script>{% endblock %}
