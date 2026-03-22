@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environnement virtuel (le plus lourd !)
+venv/
+.venv/
+env/
+
+# Base de données locale
+db.sqlite3
+
+# Fichiers de configuration IDE
+.vscode/
+.idea/
+
+# Fichiers statiques collectés
+staticfiles/
+media/
