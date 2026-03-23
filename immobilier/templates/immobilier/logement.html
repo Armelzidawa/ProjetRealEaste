@@ -3,7 +3,7 @@
 {% block title %}Annonces – ImmoGest{% endblock %}
 {% block content %}
 {% load static %}
-<section id="search" style="background-image: url('{% static "images/bgg2.jpg" %}'); background-size: cover; background-position: center; filter: brightness(0.8);" class="relative mx-auto px-5 py-10 bg-black/50 fade-up">
+<section id="search" style="background-image: url('{% static "images/bgg4.jpg" %}'); background-size: cover; background-position: center; filter: brightness(0.8);" class="relative mx-auto px-5 py-10 bg-black/50 fade-up">
   <div class="absolute inset-0 opacity-80 bg-black/50"></div>
   <h1 class="relative font-display text-3xl mb-12 text-white text-center font-700">LES BIENS IMMOBILIERS EN VENTE OU EN LOCATION</h1>
   <h1 class="relative text-white text-lg mb-5 -mt-5 text-center">Recherchez, filtrez et trouvez la propriété qui correspond à vos attentes</h1>
@@ -75,11 +75,11 @@
       </button> {% endcomment %}
     </div>
 
-  {% if annonces %}
+  {% if annonces %} 
   <div id="results-grid" class="grid grid-cols-1 px-7 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for annonce in annonces %}
     <article class="card prop-card overflow-hidden group fade-up">
-      <!-- Image -->
+      <!-- Image --> 
       <div class="h-52 relative overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
         {% with annonce.bien.get_image_principale as img %}
         {% if img and img.fichier %}
