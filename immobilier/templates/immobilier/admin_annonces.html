@@ -2,21 +2,19 @@
 {% block title %}Administration – Validation des annonces{% endblock %}
 
 {% block content %}
+{% load static %}
 <div class="max-w-7xl mx-auto px-5 py-10">
 
   <!-- Header -->
-  <div class="flex items-center justify-between flex-wrap gap-4 mb-8 fade-up">
-    <div>
+  <div class="flex items-center justify-center flex-wrap gap-4 mb-8 fade-up">
+    <div class="items-center gap-3">
       <div class="flex items-center gap-2 mb-1">
-        {% comment %} <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-          <i data-lucide="shield-check" class="text-red-600" style="width:16px;height:16px;"></i> 
-        </div> {% endcomment %}
         <span class="text-3xl font-bold text-red-600 uppercase tracking-wider">Espace Administrateur</span>
       </div>
       <h1 class="font-display text-2xl font-700 text-slate-900">Validation des annonces</h1>
       <p class="text-slate-400 text-sm mt-1">Gérez les annonces soumises par les utilisateurs</p>
     </div>
-    <div class="flex gap-3">
+    <div class="flex justify-center items-center gap-2">
       <div class="card px-4 py-3 text-center">
         <p class="font-display text-2xl font-800 text-yellow-500">{{ en_attente_count }}</p>
         <p class="text-xs text-slate-400">En attente</p>
@@ -34,7 +32,7 @@
 
   <!-- Filtres -->
   <div class="card p-4 mb-6 fade-up fade-up-1">
-    <div class="flex gap-2 flex-wrap">
+    <div class="flex items-center justify-center gap-5 flex-wrap">
       <a href="?statut=" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all
           {% if not request.GET.statut %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
           Toutes ({{ total_count }})
@@ -44,7 +42,7 @@
         En attente ({{ en_attente_count }})
       </a>
       <a href="?statut=validee" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all
-        {% if request.GET.statut == 'validee' %}bg-green-500 text-white{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}">
+        {% if request.GET.statut == 'validee' %}bg-green-500 text-white{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}" >
         Validées ({{ validee_count }})
       </a>
       <a href="?statut=rejetee" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all
@@ -68,7 +66,7 @@
                  class="w-full h-full object-cover">
           {% else %}
             <div class="w-full h-full flex flex-col items-center justify-center text-slate-300">
-              <i data-lucide="image" style="width:32px;height:32px;"></i>
+              <img src="{% static "images/image.png" %}" alt="Image">
               <p class="text-xs mt-1">Aucune photo</p>
             </div>
           {% endif %}
@@ -96,23 +94,23 @@
 
               <div class="flex flex-wrap gap-4 mt-2 text-sm text-slate-500">
                 <span class="flex items-center gap-1">
-                  <i data-lucide="user" style="width:13px;height:13px;"></i>
+                  <img src="{% static "images/user.png" %}" alt="Propriétaire" class="w-3 h-3">
                   {{ annonce.bien.proprietaire.get_full_name|default:annonce.bien.proprietaire.username }}
                 </span>
                 <span class="flex items-center gap-1">
-                  <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
+                  <img src="{% static "images/map-pin.png" %}" alt="Localisation" class="w-3 h-3">
                   {{ annonce.bien.localisation.ville }} – {{ annonce.bien.localisation.quartier }}
                 </span>
                 <span class="flex items-center gap-1">
-                  <i data-lucide="maximize-2" style="width:13px;height:13px;"></i>
+                  <img src="{% static "images/maximize-2.png" %}" alt="Surface" class="w-3 h-3">
                   {{ annonce.bien.surface }} m²
                 </span>
                 <span class="flex items-center gap-1 font-semibold text-blue-600">
-                  <i data-lucide="banknote" style="width:13px;height:13px;"></i>
+                  <img src="{% static "images/banknote.png" %}" alt="Prix" class="w-3 h-3">
                   {{ annonce.bien.prix|floatformat:0 }} FCFA
                 </span>
                 <span class="flex items-center gap-1">
-                  <i data-lucide="calendar" style="width:13px;height:13px;"></i>
+                  <img src="{% static "images/calendar.png" %}" alt="Date de publication" class="w-3 h-3">
                   {{ annonce.datePublication|date:"d/m/Y à H\hi" }}
                 </span>
               </div>
@@ -127,14 +125,14 @@
                 {% csrf_token %}
                 <button type="submit"
                   class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-md">
-                  <i data-lucide="check-circle" style="width:15px;height:15px;"></i> Valider
+                  <img src="{% static "images/check-check.png" %}" alt=""> Valider
                 </button>
               </form>
               <form method="POST" action="/admin-annonces/{{ annonce.pk }}/rejeter/">
                 {% csrf_token %}
                 <button type="submit"
                   class="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                  <i data-lucide="x-circle" style="width:15px;height:15px;"></i> Rejeter
+                  <img src="{% static "images/circle-x.png" %}" alt=""> Rejeter
                 </button>
               </form>
               {% elif annonce.statut == 'validee' %}
@@ -142,27 +140,27 @@
                 {% csrf_token %}
                 <button type="submit"
                   class="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                  <i data-lucide="x-circle" style="width:15px;height:15px;"></i> Rejeter
+                  <img src="{% static "images/circle-x.png" %}" class="w-4 h-4" alt="">Rejeter
                 </button>
               </form>
               {% elif annonce.statut == 'rejetee' %}
               <form method="POST" action="/admin-annonces/{{ annonce.pk }}/valider/">
                 {% csrf_token %}
                 <button type="submit"
-                  class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-md">
-                  <i data-lucide="check-circle" style="width:15px;height:15px;"></i> Valider
+                  class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:shadow-md">
+                  <img src="{% static "images/check-circle.png" %}" alt="Valider" class="w-3 h-3"> Valider
                 </button>
               </form>
               {% endif %}
 
-              <a href="/annonce/{{ annonce.pk }}/" target="_blank"
-                class="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2 rounded-xl text-sm font-medium transition-all">
-                <i data-lucide="eye" style="width:14px;height:14px;"></i> Aperçu
+              <a href="/annonce/{{ annonce.pk }}/"
+                class="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2 rounded-xl text-sm font-medium">
+                <img src="{% static "images/eye.png" %}" class="w-4 h-4" alt="Aperçu"> Aperçu
               </a>
               
              <a href="/supprimer/{{ annonce.bien.pk }}/?retour=admin_annonces"
-                class="w-full flex items-center justify-center gap-2 bg-red-300 hover:bg-red-500 text-slate-600 px-5 py-2 rounded-xl text-sm font-medium transition-all">
-                <i data-lucide="trash" style="width:14px;height:14px;"></i> Supprimer
+                class="w-full flex items-center justify-center gap-2 bg-red-300 hover:bg-red-500 text-slate-600 px-5 py-2 rounded-xl text-sm font-medium">
+                <img src="{% static "images/trash.png" %}" alt="Supprimer" class="w-3 h-3"> Supprimer
               </a> 
              
           </div>
@@ -171,7 +169,7 @@
     </div>
     {% empty %}
     <div class="card p-16 text-center fade-up">
-      <i data-lucide="inbox" class="text-slate-200 mx-auto mb-4" style="width:56px;height:56px;"></i>
+      <img src="{% static "images/inbox.png" %}" alt="Aucune annonce" class="w-16 h-16 mx-auto mb-4">
       <p class="font-display text-xl text-slate-400">Aucune annonce trouvée</p>
       <p class="text-slate-400 text-sm mt-1">Aucune annonce ne correspond à ce filtre.</p>
     </div>
