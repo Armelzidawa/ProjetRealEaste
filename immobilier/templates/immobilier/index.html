@@ -164,23 +164,23 @@
       <!-- Nav desktop -->
       <nav class="hidden gap-1 md:flex items-center ">
         <a href="/" class="nav-link text-black text-lg {% block nav_home %}{% endblock %}">
-          <img src="{% static "images/house.png" %}" alt="Accueil" class="w-5 h-5 invert"> Accueil
+          <img src="{% static "images/house.png" %}" alt="Accueil" class="w-5 h-5 {% if request.path == '/' %}invert{% endif %}"> Accueil
         </a>
 
         {% if request.user.is_authenticated %}
 
           <a href="/tableau-de-bord/" class="nav-link text-black text-lg {% block nav_tableau %}{% endblock %}">
-            <img src="{% static "images/table-cells-merge.png" %}" alt="Tableau de bord" class="w-5 h-5 "> Tableau de bord
+            <img src="{% static "images/table-cells-merge.png" %}" alt="Tableau de bord" class="w-5 h-5 {% if request.path == '/tableau-de-bord/' %}invert{% endif %}"> Tableau de bord
           </a>
           <a href="/favoris/" class="nav-link text-black text-lg {% block nav_favoris %}{% endblock %}">
-            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-5 h-5 "> Favoris
+            <img src="{% static "images/heart.png" %}" alt="Favoris" class="w-5 h-5 {% if request.path == '/favoris/' %}invert{% endif %}"> Favoris
           </a>
           <a href="/ajouter/" class="nav-link text-black text-lg {% block nav_ajouter %}{% endblock %}">
-            <img src="{% static "images/plus.png" %}" alt="Ajouter" class="w-5 h-5 "> Ajouter
+            <img src="{% static "images/plus.png" %}" alt="Ajouter" class="w-5 h-5 {% if request.path == '/ajouter/' %}invert{% endif %}"> Ajouter
           </a>
         {% endif %}
          <a href="/logement/" class="nav-link text-black text-lg {% block nav_logement %}{% endblock %}">
-          <img src="{% static "images/megaphone.png" %}" alt="Logement" class="w-5 h-5 "> Annonces
+          <img src="{% static "images/megaphone.png" %}" alt="Logement" class="w-5 h-5 {% if request.path == '/logement/' %}invert{% endif %}"> Annonces
         </a>
       </nav>
 
@@ -189,7 +189,7 @@
         {% if request.user.is_authenticated %}
           {% if request.user.is_superuser %}
           <a href="/admin-annonces/" class="hidden md:inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-md font-semibold hover:bg-red-700 transition">
-            <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Admin
+            <img src="{% static "images/shield-check.png" %}" alt="Admin" class="w-5 h-5 invert"> Admin
           </a>
         {% endif %}
           <a href="/mes-messages/" class="hidden md:inline-flex relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition">
