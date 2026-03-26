@@ -70,11 +70,12 @@
 </div>
 </section>
 
+
 <!-- ══ LISTE DES ANNONCES ══ -->
 <section class="max-w-7xl mx-auto px-5 mt-12 pb-16">
-  <div class="flex items-center justify-between mb-6 fade-up">
-    <div>
-      <h2 class="font-display text-3xl font-700 text-slate-900">
+  <div class="flex items-center text-center mb-6 fade-up">
+    <div class="max-w-lg text-center md:text-left">
+      <h2 class="font-display text-center text-3xl font-700 text-slate-900">
         {% if request.GET %}
           {{ annonces.count }} résultat{% if annonces.count > 1 %}s{% endif %} trouvé{% if annonces.count > 1 %}s{% endif %}
         {% else %}

@@ -14,7 +14,73 @@
     <!-- Colonne principale -->
     <div class="lg:col-span-2 space-y-6">
 
-      <!-- Galerie -->
+      {% with annonce.bien.images.all as images %}
+      {% if images %}
+
+      <!-- Galerie principale -->
+      <div class="grid grid-cols-3 gap-2 mb-6 cursor-pointer">
+        {% for img in images %}
+        <div class="{% if forloop.first %}col-span-2 row-span-2{% endif %} overflow-hidden rounded-xl" 
+            onclick="ouvrirLightbox({{ forloop.counter0 }})">
+          <img src="{{ img.fichier.url }}" alt="{{ annonce.bien.titre }}"
+              class="w-full {% if forloop.first %}h-80{% else %}h-40{% endif %} object-cover hover:scale-105 transition-transform duration-500">
+        </div>
+        {% endfor %}
+        <!-- Bouton voir toutes les photos -->
+        {% if images|length > 3 %}
+        <button onclick="ouvrirLightbox(0)"
+          class="col-span-1 h-40 bg-black/60 rounded-xl flex flex-col items-center justify-center text-white hover:bg-black/70 transition">
+          <i data-lucide="images" style="width:24px;height:24px;"></i>
+          <p class="text-sm font-semibold mt-1">+{{ images|length }} photos</p>
+        </button>
+        {% endif %}
+      </div>
+
+      {% else %}
+      <div class="h-72 bg-slate-100 rounded-xl flex items-center justify-center text-slate-300 mb-6">
+        <p class="text-sm">Aucune photo disponible</p>
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <!-- ══ LIGHTBOX ══ -->
+      <div id="lightbox" class="fixed inset-0 bg-black/90 z-[9999] hidden flex items-center justify-center" 
+          onclick="fermerLightbox(event)" onkeyPress>
+
+        <!-- Fermer -->
+        <button onclick="fermerLightbox()"
+          class="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+
+        <!-- Compteur -->
+        <p id="lightbox-compteur"
+          class="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium">
+        </p>
+
+        <!-- Bouton Précédent -->
+        <button onclick="changerImage(-1)"
+          class="absolute left-4 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
+          <i data-lucide="chevron-left" style="width:24px;height:24px;"></i>
+        </button>
+
+        <!-- Image principale -->
+        <img id="lightbox-img" src="" alt=""
+          class="max-h-[85vh] max-w-[85vw] rounded-xl object-contain shadow-2xl">
+
+        <!-- Bouton Suivant -->
+        <button onclick="changerImage(1)"
+          class="absolute right-4 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
+          <i data-lucide="chevron-right" style="width:24px;height:24px;"></i>
+        </button>
+
+        <!-- Miniatures en bas -->
+        <div id="lightbox-thumbs"
+          class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] px-2">
+        </div>
+
+      </div>
+      {% comment %} <!-- Galerie -->
       <div class="card overflow-hidden">
         {% with annonce.bien.images.all as images %}
         {% if images %}
@@ -37,7 +103,7 @@
           </div>
         {% endif %}
         {% endwith %}
-      </div>
+      </div> {% endcomment %}
 
       <!-- Titre et prix -->
       <div class="card p-6">
@@ -105,7 +171,7 @@
       </div>
       {% else %}
       <div class="h-40 w-full rounded-xl border border-slate-200 flex flex-col items-center justify-center text-slate-300 mb-6">
-        <img src="{% static 'images/map-pin.png' %}" class="w-8 h-8 opacity-30 mb-2">
+        <img src="{% static 'images/map-pin.png' %}" alt="localisation" class="w-8 h-8 opacity-30 mb-2">
         <p class="text-sm">Localisation non renseignée</p>
       </div>
       {% endif %}
@@ -167,6 +233,98 @@
 {% block extra_js %}
 <script>
   lucide.createIcons();
+
+
+  // ── Liste des images du bien ──
+  var images = [
+    {% for img in annonce.bien.images.all %}
+    "{{ img.fichier.url }}",
+    {% endfor %}
+  ];
+
+  var indexActuel = 0;
+
+  // ── Ouvrir la lightbox ──
+  function ouvrirLightbox(index) {
+    indexActuel = index;
+    document.getElementById('lightbox').classList.remove('hidden');
+    document.getElementById('lightbox').classList.add('flex');
+    document.body.style.overflow = 'hidden'; // bloquer le scroll
+    afficherImage(indexActuel);
+    genererMiniatures();
+  }
+
+  // ── Fermer la lightbox ──
+  function fermerLightbox(event) {
+    // Ferme seulement si on clique sur le fond noir (pas sur l'image)
+    if (event && event.target !== document.getElementById('lightbox')) return;
+    document.getElementById('lightbox').classList.add('hidden');
+    document.getElementById('lightbox').classList.remove('flex');
+    document.body.style.overflow = ''; // rétablir le scroll
+  }
+
+  // ── Changer d'image ──
+  function changerImage(direction) {
+    indexActuel = (indexActuel + direction + images.length) % images.length;
+    afficherImage(indexActuel);
+  }
+
+  // ── Afficher une image ──
+  function afficherImage(index) {
+    var img = document.getElementById('lightbox-img');
+    // Animation de transition
+    img.style.opacity = '0';
+    img.style.transform = 'scale(0.95)';
+    setTimeout(function() {
+      img.src = images[index];
+      img.style.opacity = '1';
+      img.style.transform = 'scale(1)';
+    }, 150);
+
+    // Mettre à jour le compteur
+    document.getElementById('lightbox-compteur').textContent =
+      (index + 1) + ' / ' + images.length;
+
+    // Mettre à jour les miniatures actives
+    document.querySelectorAll('.thumb-btn').forEach(function(btn, i) {
+      btn.classList.toggle('ring-2',   i === index);
+      btn.classList.toggle('ring-white', i === index);
+      btn.classList.toggle('opacity-100', i === index);
+      btn.classList.toggle('opacity-50',  i !== index);
+    });
+  }
+
+  // ── Générer les miniatures ──
+  function genererMiniatures() {
+    var container = document.getElementById('lightbox-thumbs');
+    container.innerHTML = '';
+    images.forEach(function(src, i) {
+      var btn = document.createElement('button');
+      btn.className = 'thumb-btn shrink-0 w-14 h-14 rounded-lg overflow-hidden transition-all '
+                    + (i === indexActuel ? 'ring-2 ring-white opacity-100' : 'opacity-50');
+      btn.onclick = function(e) { e.stopPropagation(); indexActuel = i; afficherImage(i); };
+      btn.innerHTML = '<img src="' + src + '" class="w-full h-full object-cover">';
+      container.appendChild(btn);
+    });
+  }
+
+  // ── Navigation clavier ──
+  document.addEventListener('keydown', function(e) {
+    var lightbox = document.getElementById('lightbox');
+    if (lightbox.classList.contains('hidden')) return;
+
+    if (e.key === 'ArrowLeft')  changerImage(-1);
+    if (e.key === 'ArrowRight') changerImage(1);
+    if (e.key === 'Escape') {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Transition CSS sur l'image
+  document.getElementById('lightbox-img').style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+
 
   {% if annonce.bien.localisation.latitude %}
   // Initialiser la carte

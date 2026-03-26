@@ -1,11 +1,11 @@
 {% extends "immobilier/index.html" %}
+
+{% comment %} {% extends "immobilier/index.html" %}
 {% block title %}Mes messages – ImmoGest{% endblock %}
 {% block content %}
-  {% comment %} <h1 class="font-display text-3xl text-center font-700  mb-6 ">LES MESSAGES </h1> {% endcomment %}
   <h1 class="font-display text-center text-blue-600 mt-6 text-3xl font-700  mb-6 ">Les messages reçus</h1> 
 
 <div class="max-w-4xl mx-auto px-5 py-10">
-  {% comment %} <h1 class="font-display text-2xl font-700  mb-6 ">Les messages reçus</h1>  {% endcomment %}
 
   {% if contacts %}
   <div class="space-y-4 fade-up fade-up-1">
@@ -36,4 +36,209 @@
   {% endif %} 
 </div>  
 {% endblock %}
-{% block extra_js %}<script>lucide.createIcons();</script>{% endblock %}
+{% block extra_js %}<script>lucide.createIcons();</script>{% endblock %} {% endcomment %}
+
+{% load static %}
+
+{% block title %}Mes messages – ImmoGest{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-5 py-10">
+  
+  <!-- Header -->
+  <div class="text-center mb-12 fade-up">
+    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+      <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <h1 class="font-display text-3xl font-bold text-slate-900 mb-2">Messages reçus</h1>
+    <p class="text-slate-500">Consultez les demandes et questions des utilisateurs</p>
+  </div>
+
+  {% if contacts %}
+  <div class="space-y-4 fade-up fade-up-1">
+    {% for c in contacts %}
+    <div class="group bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-slate-200 transition-all duration-300 overflow-hidden">
+      <div class="p-6">
+        
+        <!-- En-tête du message -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-4">
+            <!-- Avatar -->
+            <div class="relative">
+              <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-display font-bold text-lg shadow-md">
+                {{ c.expediteur.username|first|upper }}
+              </div>
+              <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            
+            <div>
+              <h3 class="font-semibold text-slate-800 text-lg hover:text-blue-600 transition-colors">
+                {{ c.expediteur.get_full_name|default:c.expediteur.username }}
+              </h3>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs text-slate-400 flex items-center gap-1">
+                  <img src="{% static "images/mail.png" %}" alt="email" class="w-3 h-3">
+                  {{ c.expediteur.email|default:"Email non renseigné" }}
+                </span>
+                <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                <span class="text-xs text-slate-400 flex items-center gap-1">
+                  <img src="{% static "images/clock.png" %}" alt="date" class="w-3 h-3">
+                  {{ c.date_envoi|date:"d/m/Y à H\hi" }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Badge annonce -->
+          <a href="/annonce/{{ c.annonce.pk }}/" 
+             class="group/link pr-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+            <div class="flex items-center gap-2">
+              <img src="{% static "images/folder.png" %}" alt="dossier" class="w-4 h-4">
+              <span class="text-xs font-medium text-blue-600 group-hover/link:text-blue-700">
+                {{ c.annonce.bien.titre|truncatechars:30 }}
+              </span>
+            </div>
+          </a>
+        </div>
+        
+        <!-- Contenu du message -->
+        <div class="ml-14 relative">
+          <div class="absolute -left-3 top-0 w-0.5 h-full bg-gradient-to-b from-blue-200 to-transparent"></div>
+          <div class="bg-gradient-to-r from-slate-50 to-white rounded-xl p-5 border border-slate-100">
+            <p class="text-slate-700 leading-relaxed">{{ c.message|linebreaksbr }}</p>
+          </div>
+        </div>
+        
+        <!-- Actions du message -->
+        {% comment %} <div class="flex items-center justify-end gap-2 mt-4 ml-14">
+          <button onclick="replyToMessage('{{ c.expediteur.username }}', '{{ c.annonce.bien.titre }}')"
+                  class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all flex items-center gap-2">
+            <img src="{% static "images/reply.png" %}" alt="Repondre" class="w-4 h-4">
+            Répondre
+          </button>
+          <button onclick="markAsRead(this)"
+                  data-message-id="{{ c.id }}"
+                  class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all flex items-center gap-2">
+            <img src="{% static "images/check-check.png" %}" alt="Message lu" class="w-4 h-4">
+            Marquer comme lu
+          </button>
+        </div> {% endcomment %}
+        
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <div class="flex justify-center items-center gap-2 mt-10 fade-up fade-up-2">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" 
+         class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+        <img src="{% static "images/chevron-left.png" %}" alt="Précédent" class="w-4 h-4">
+
+        Précédent
+      </a>
+    {% endif %}
+    
+    <span class="px-4 py-2 text-sm text-slate-600">
+      Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" 
+         class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+        Suivant
+        <img src="{% static "images/chevron-right.png" %}" alt="Suivant" class="w-4 h-4">
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  {% else %}
+  <!-- État vide -->
+  <div class="flex flex-col items-center justify-center py-20 text-center fade-up">
+    <div class="w-32 h-32 bg-gradient-to-br from-slate-100 to-slate-50 rounded-full flex items-center justify-center mb-6">
+      <img src="{% static "images/mail.png" %}" alt="Mail" class="w-12 h-12 text-slate-300">
+    </div>
+    <h3 class="font-display text-2xl font-semibold text-slate-500 mb-2">Aucun message</h3>
+    <p class="text-slate-400 text-sm">Il n'y a pas encore de messages à afficher.</p>
+    <p class="text-slate-400 text-xs mt-2">Les messages reçus apparaîtront ici</p>
+  </div>
+  {% endif %}
+  
+</div>
+
+<script>
+  function replyToMessage(username, annonceTitle) {
+    alert(`Fonction de réponse à ${username} concernant "${annonceTitle}"\nÀ implémenter selon vos besoins`);
+    // Ici vous pouvez ouvrir un modal ou rediriger vers une page de réponse
+  }
+  
+  function markAsRead(button) {
+    const messageId = button.getAttribute('data-message-id');
+    // Ici vous pouvez faire une requête AJAX pour marquer le message comme lu
+    button.classList.add('opacity-50', 'cursor-not-allowed');
+    button.disabled = true;
+    button.innerHTML = `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      Lu
+    `;
+    console.log(`Message ${messageId} marqué comme lu`);
+  }
+</script>
+
+<style>
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-up {
+    animation: fadeUp 0.5s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .fade-up-1 {
+    animation-delay: 0.1s;
+  }
+  
+  .fade-up-2 {
+    animation-delay: 0.2s;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Animation au scroll pour les cartes
+  document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.group');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      card.style.transition = `all 0.5s ease-out ${index * 0.1}s`;
+      observer.observe(card);
+    });
+  });
+</script>
+{% endblock %}

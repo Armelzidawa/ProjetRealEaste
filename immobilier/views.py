@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -6,6 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
 from  django.core.paginator import Paginator
+
 
 from .models import Annonce, Bien, Localisation, Image, Favori, Contact, TRANSACTION_CHOICES, TYPE_BIEN_CHOICES
 from .forms import InscriptionForm, BienForm, LocalisationForm, ContactForm, RechercheForm
@@ -343,12 +343,25 @@ def admin_rejeter(request, pk):
 
 @login_required
 def supprimer_annonce(request, pk):
-    bien = get_object_or_404(Bien, pk=pk, proprietaire=request.user)
+    # 1. On récupère le bien par son ID
+    bien = get_object_or_404(Bien, pk=pk)
 
+    # 2. Vérification des droits : admin OU propriétaire
+    if bien.proprietaire != request.user and not request.user.is_staff:
+        messages.error(request, "Vous n'avez pas l'autorisation de supprimer cette annonce.")
+        return redirect('tableauBord')
+
+    # 3. Traitement de la suppression
     if request.method == 'POST':
         bien.delete()
         messages.success(request, "Annonce supprimée avec succès.")
-        return redirect('tableauBord')
+        # Redirection dynamique
+        retour = request.POST.get('retour', 'tableauBord')
+        return redirect(retour)
 
-    # GET → affiche la page de confirmation
-    return render(request, 'immobilier/supprimer.html', {'bien': bien})
+    # 4. GET → affiche la page de confirmation avec le paramètre retour
+    retour = request.GET.get('retour', 'tableauBord')
+    return render(request, 'immobilier/supprimer.html', {
+    'bien': bien,
+    'retour': retour  # Important : passer retour au template
+})

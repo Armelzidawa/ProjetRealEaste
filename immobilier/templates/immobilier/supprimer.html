@@ -13,18 +13,21 @@
     </p>
     <form method="POST">
       {% csrf_token %}
-      <!-- On passe le retour dans le formulaire POST aussi -->
       <input type="hidden" name="retour" value="{{ retour }}">
       <div class="flex gap-3 justify-center">
-        <!-- Annuler → retourne vers la bonne page -->
-        <a href="{% url retour %}" class="btn-secondary">
-          Annuler
-        </a>
+        {% if retour == 'admin_annonces' %}
+          <a href="{% url 'admin_annonces' %}" class="btn-secondary">
+            Annuler
+          </a>
+        {% else %}
+          <a href="{% url retour %}" class="btn-secondary">
+            Annuler
+          </a>
+        {% endif %}
         <button type="submit" class="btn-danger">
           <img src="{% static 'images/trash-2.png' %}" alt="Supprimer" class="w-4 h-4">
           Supprimer
         </button>
-
       </div>
     </form>
   </div>
