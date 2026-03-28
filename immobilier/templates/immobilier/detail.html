@@ -9,10 +9,11 @@
     Retour
   </a>
   
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <!-- Layout principal : colonne unique sur mobile, 3 colonnes sur desktop -->
+  <div class="flex flex-col lg:flex-row gap-8">
 
-    <!-- Colonne principale -->
-    <div class="lg:col-span-2 space-y-6">
+    <!-- Colonne principale (gauche) - prend 2/3 sur desktop -->
+    <div class="flex-1 lg:w-2/3 space-y-6">
 
       {% with annonce.bien.images.all as images %}
       {% if images %}
@@ -30,7 +31,7 @@
         {% if images|length > 3 %}
         <button onclick="ouvrirLightbox(0)"
           class="col-span-1 h-40 bg-black/60 rounded-xl flex flex-col items-center justify-center text-white hover:bg-black/70 transition">
-          <i data-lucide="images" style="width:24px;height:24px;"></i>
+          <img src="{% static "images/image.png" %}" alt="Photos" class="w-6 h-6 mb-1">
           <p class="text-sm font-semibold mt-1">+{{ images|length }} photos</p>
         </button>
         {% endif %}
@@ -50,7 +51,7 @@
         <!-- Fermer -->
         <button onclick="fermerLightbox()"
           class="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
-          <i data-lucide="x" style="width:20px;height:20px;"></i>
+         <img src="{% static "images/x.png" %}" alt="x" class="w-4 h-4">
         </button>
 
         <!-- Compteur -->
@@ -61,7 +62,7 @@
         <!-- Bouton Précédent -->
         <button onclick="changerImage(-1)"
           class="absolute left-4 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
-          <i data-lucide="chevron-left" style="width:24px;height:24px;"></i>
+          <img src="{% static "images/chevron-left.png" %}" alt="Précédent" class="w-6 h-6">
         </button>
 
         <!-- Image principale -->
@@ -71,7 +72,7 @@
         <!-- Bouton Suivant -->
         <button onclick="changerImage(1)"
           class="absolute right-4 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition">
-          <i data-lucide="chevron-right" style="width:24px;height:24px;"></i>
+          <img src="{% static "images/chevron-right.png" %}" alt="Suivant" class="w-6 h-6">
         </button>
 
         <!-- Miniatures en bas -->
@@ -80,30 +81,6 @@
         </div>
 
       </div>
-      {% comment %} <!-- Galerie -->
-      <div class="card overflow-hidden">
-        {% with annonce.bien.images.all as images %}
-        {% if images %}
-          {% if images|length > 1 %}
-          <div class="grid grid-cols-3 gap-1">
-            {% for img in images %}
-            <div class="{% if forloop.first %}col-span-2 row-span-2{% endif %} overflow-hidden">
-              <img src="{{ img.fichier.url }}" alt="{{ annonce.bien.titre }}"
-                   class="w-full {% if forloop.first %}h-80{% else %}h-40{% endif %} object-cover hover:scale-105 transition-transform duration-500">
-            </div>
-            {% endfor %}
-          </div>
-          {% else %}
-          <img src="{{ images.0.fichier.url }}" alt="{{ annonce.bien.titre }}" class="w-full h-80 object-cover">
-          {% endif %}
-        {% else %}
-          <div class="h-72 bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center text-slate-300">
-            <img src="{% static "images/image.png" %}" alt="" class="w-12 h-12 mb-2">
-            <p class="text-sm mt-2">Aucune photo disponible</p>
-          </div>
-        {% endif %}
-        {% endwith %}
-      </div> {% endcomment %}
 
       <!-- Titre et prix -->
       <div class="card p-6">
@@ -176,8 +153,10 @@
       </div>
       {% endif %}
 
-    <!-- Sidebar -->
-    <div class="space-y-5">
+    </div>
+
+    <!-- Sidebar (droite) - sur mobile s'affiche après la colonne principale -->
+    <div class="lg:w-1/3 space-y-5">
       <!-- Propriétaire -->
       <div class="card p-6">
         <h2 class="font-display font-700 mb-4 flex items-center gap-2">
