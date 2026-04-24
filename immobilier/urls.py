@@ -11,7 +11,7 @@ urlpatterns = [
     path('inscription/',            views.inscription,    name='inscription'),
     path('connexion/',              views.connexion,      name='connexion'),
     path('deconnexion/',            views.deconnexion,    name='deconnexion'),
-
+    
     path('tableau-de-bord/',        views.tableauBord,    name='tableauBord'),
     path('favoris/',                views.favoris,        name='favoris'),
     path('mes-messages/',           views.mes_messages,   name='mes_messages'),
@@ -20,7 +20,6 @@ urlpatterns = [
     path('ajouter/',                views.ajouter,        name='ajouter'),
     path('modifier/<int:pk>/',      views.modifier,       name='modifier'),
     path('supprimer/<int:pk>/',     views.supprimer,      name='supprimer'),
-
     path('contacter/<int:pk>/',     views.contacter,      name='contacter'),
     path('favoris/toggle/<int:pk>/', views.toggle_favori, name='toggle_favori'),
     path('dashboard/annonces/',          views.dashboard_annonces, name='dashboard_annonces'),
